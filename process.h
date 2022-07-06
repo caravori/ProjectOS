@@ -10,13 +10,10 @@
 typedef struct blocoControleProcesso{
     int pointer;
     char procesState[32];
-}
+}bcp;
 
 
-void processInterrupt(){ //Final de quantum time
-
-}   
-
+void processInterrupt(); //Final de quantum time
 void processCreate();
 void processFinish();
 void semaphoreP();
