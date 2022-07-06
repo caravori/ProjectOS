@@ -22,7 +22,7 @@ bcp highPriorityList(bcp *process){
     while (process->next!=NULL){
         process = process->next;
     }
-
+    return *head;
 }
 
 bcp lowPriorityList(){

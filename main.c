@@ -9,9 +9,13 @@ int main (void){
     //pthread_t T_clock;
     //int clock_T = pthread_create(&T_clock,NULL,&clock,NULL);
     menu();
-    u_int64_t *arr;
-    arr = malloc(MAX_MEMORY);
-    free(arr);
+    //u_int64_t *arr;
+    //arr = malloc(MAX_MEMORY);
+    //free(arr);
+    bcp *HProcess;
+    HProcess->next = NULL;
+    bcp *LProcess;
+    *HProcess=highPriorityList(HProcess);
     //pthread_join(T_clock,NULL);
     return 0;
 }
