@@ -5,7 +5,7 @@
 void menu();
 
 int main (void){
-    printf("Sizeof bcp:%ld",sizeof(bcp));
+    printf("Sizeof pcb:%ld",sizeof(pcb));
     return 0;
 }
 

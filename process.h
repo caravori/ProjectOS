@@ -7,25 +7,31 @@
 #define PAGE_SIZE  4
 
 #include <stdio.h>
+
+
+typedef enum PCB_STATES{
+    CREATED = 0,
+    READY,
+    RUNNING,
+    BLOCKED,
+    TERMINATED
+}PCB_STATE;
 typedef struct blocoControleProcesso{
-    int pointer;
-    char procesState[32];
-    int prioridade;
-    //char register[10][3];
-    int limMemory;
-    int pid;
+    unsigned int pid;
+    PCB_STATE states;
+    unsigned int quantum;
     struct blocoControleProcesso *next;
-}bcp;
+}pcb;
 
-bcp highPriorityList(bcp *process){
+pcb highPriorityList(pcb *process){
 
 }
 
-bcp lowPriorityList(bcp *process){
+pcb lowPriorityList(pcb *process){
 }
 
-bcp newNode(bcp *process, bcp *new){ //é para add no final?
-    bcp *head = process;
+pcb newNode(pcb *process, pcb *new){ //é para add no final?
+    pcb *head = process;
     while(process->next!=NULL){
         process = process->next;
     }
@@ -33,12 +39,12 @@ bcp newNode(bcp *process, bcp *new){ //é para add no final?
     return *head;
 }
 
-bcp delNode(bcp *process, int pid){
-    bcp *head = process;
-    bcp *prev;
+pcb delNode(pcb *process, int pid){
+    pcb *head = process;
+    pcb *prev;
     while(process->pid!=pid){
         if (process->next==NULL){
-            fprintf(stderr,"ERROR: PID DO NOT EXIST\n");
+            fprintf(stderr,"ERROR: PID DOES NOT EXIST\n");
             return *head;
         }
         prev = process;
