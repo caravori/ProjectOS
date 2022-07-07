@@ -1,22 +1,16 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include <pthread.h>
 #include "process.h"
 
 void menu();
 
 int main (void){
-    //pthread_t T_clock;
-    //int clock_T = pthread_create(&T_clock,NULL,&clock,NULL);
+    bcp *nsei = malloc(sizeof(bcp));
+    bcp *novo = malloc(sizeof(bcp));
+    novo->pid = 1;
+    *nsei = newNode(nsei,novo);
+    *nsei = delNode(nsei,1);
     menu();
-    //u_int64_t *arr;
-    //arr = malloc(MAX_MEMORY);
-    //free(arr);
-    bcp *HProcess;
-    HProcess->next = NULL;
-    bcp *LProcess;
-    *HProcess=highPriorityList(HProcess);
-    //pthread_join(T_clock,NULL);
     return 0;
 }
 
