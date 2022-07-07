@@ -5,6 +5,7 @@
 #define LOW_PRIO   2000
 #define HIGH_PRIO  1000
 #define PAGE_SIZE  4
+
 #include <stdio.h>
 typedef struct blocoControleProcesso{
     int pointer;

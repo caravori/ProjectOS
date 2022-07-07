@@ -5,12 +5,7 @@
 void menu();
 
 int main (void){
-    bcp *nsei = malloc(sizeof(bcp));
-    bcp *novo = malloc(sizeof(bcp));
-    novo->pid = 1;
-    *nsei = newNode(nsei,novo);
-    *nsei = delNode(nsei,1);
-    menu();
+    printf("Sizeof bcp:%ld",sizeof(bcp));
     return 0;
 }
 
