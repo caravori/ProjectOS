@@ -5,7 +5,8 @@
 void menu();
 
 int main (void){
-    printf("Sizeof pcb:%ld",sizeof(pcb));
+    g_clock = 0;
+    printf("Sizeof pcb:%ld, sizeof memory:%ld",sizeof(pcb),sizeof(memory));
     return 0;
 }
 

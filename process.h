@@ -8,6 +8,23 @@
 
 #include <stdio.h>
 
+unsigned int g_clock;
+/*
+TODO
+    * imaginar uma forma de criar memoria de 1gb com separações de 4k //done
+    * Semaforo
+    * Fazer todas as funções declaradas lá embaixo 
+    * Criar um relógio // done
+    * 
+
+*/
+
+typedef struct memory{
+    unsigned int    pid;
+    int32_t         mem[1000];//4kb de inteiros
+    struct memory   *next;
+    struct memory   *prev;
+}memory[248509];//1gb de memoria
 
 typedef enum PCB_STATES{
     CREATED = 0,
