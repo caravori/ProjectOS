@@ -33,6 +33,7 @@ typedef enum PCB_STATES{
     BLOCKED,
     TERMINATED
 }PCB_STATE;
+
 typedef struct blocoControleProcesso{
     unsigned int pid;
     PCB_STATE states;
