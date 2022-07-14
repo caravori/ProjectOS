@@ -6,12 +6,11 @@ void menu();
 
 int main (void){
     g_clock = 0;
-    pcb *new = malloc (sizeof(pcb));
-    pcb *newNew = malloc (sizeof(pcb));
     //printf("Sizeof pcb:%ld, sizeof memory:%ld",sizeof(pcb),sizeof(memory));
-    new->pid = 1;
-    pcb head = newNode(new,newNew);
-    delNode(new,1);   
+    pcb *highPriorityList;
+    pcb *lowPriorityList;
+    highPriorityList = processCreate(1);
+    printf("%d",highPriorityList->states);
     return 0;
 }
 

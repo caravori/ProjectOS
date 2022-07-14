@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 unsigned int g_clock;
 /*
@@ -36,14 +37,13 @@ typedef enum PCB_STATES{
 }PCB_STATE;
 
 typedef struct blocoControleProcesso{
-    unsigned int pid;
+    int pid;
     PCB_STATE states;
-    unsigned int quantum;
+    bool isHigh;
+    int quantum;
+    //int instructions[1000];
     struct blocoControleProcesso *next;
 }pcb;
-
-pcb *processHighPriorityList;
-pcb *processLowPriorityList;
 
 pcb newNode(pcb *process, pcb *novo){ //é para add no final?
     pcb *head = process;
@@ -91,14 +91,14 @@ pcb *processCreate(int pid){
   process = (pcb*)malloc(sizeof(pcb));
 
   if(process == NULL){
-    printf("falha na alocacao de processo");
+    fprintf(stderr,"ERRO: FALHA NA ALOCACAO DE PROCESSO");
     exit(1);
   }
   process->pid = pid;
   process->next = NULL;
   process->quantum = 0;
-
-  newNode(processHighPriorityList, process);
+  process->states = CREATED;
+  process->isHigh = true;//pelo arquivo
 
   return process;
 }
