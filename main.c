@@ -7,9 +7,11 @@ void menu();
 int main (void){
     g_clock = 0;
     pcb *new = malloc (sizeof(pcb));
+    pcb *newNew = malloc (sizeof(pcb));
     //printf("Sizeof pcb:%ld, sizeof memory:%ld",sizeof(pcb),sizeof(memory));
-    pcb head = processCreate(new,1); 
-    delNode(&head,1);   
+    new->pid = 1;
+    pcb head = newNode(new,newNew);
+    delNode(new,1);   
     return 0;
 }
 

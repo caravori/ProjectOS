@@ -50,9 +50,6 @@ pcb lowPriorityList(pcb *process){
 }
 
 pcb newNode(pcb *process, pcb *new){ //é para add no final?
-    if (process == NULL){
-        
-    }
     pcb *head = process;
     while(process->next!=NULL){
         process = process->next;
@@ -83,19 +80,7 @@ pcb delNode(pcb *process, int pid){
 
 }
 
-pcb processCreate(pcb *process,int pid){//TA FUDIDO HELP
-    pcb *head;
-    pcb *processNew = malloc(sizeof(pcb));
-    processNew->pid =       pid;
-    processNew->states =    CREATED;
-    processNew->quantum =   0;
-    processNew->next =      NULL;
-    if (process == NULL){
-        return *processNew; // now processNew is head!
-    }
-    *head = newNode(process,processNew);
-    return *head;
-
+pcb processCreate(){//TA FUDIDO HELP
 }
 
 void processInterrupt(); //Final de quantum time
