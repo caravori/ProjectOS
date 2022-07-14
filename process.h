@@ -7,6 +7,7 @@
 #define PAGE_SIZE  4
 
 #include <stdio.h>
+#include <stdlib.h>
 
 unsigned int g_clock;
 /*
@@ -24,7 +25,7 @@ typedef struct memory{
     int32_t         mem[1000];//4kb de inteiros
     struct memory   *next;
     struct memory   *prev;
-}memory[248509];//1gb de memoria
+}memoryType[248509];//1gb de memoria
 
 typedef enum PCB_STATES{
     CREATED = 0,
@@ -41,19 +42,15 @@ typedef struct blocoControleProcesso{
     struct blocoControleProcesso *next;
 }pcb;
 
-pcb highPriorityList(pcb *process){
+pcb *processHighPriorityList;
+pcb *processLowPriorityList;
 
-}
-
-pcb lowPriorityList(pcb *process){
-}
-
-pcb newNode(pcb *process, pcb *new){ //é para add no final?
+pcb newNode(pcb *process, pcb *novo){ //é para add no final?
     pcb *head = process;
     while(process->next!=NULL){
         process = process->next;
     }
-    process->next = new;
+    process->next = novo;
     return *head;
 }
 
@@ -79,13 +76,31 @@ pcb delNode(pcb *process, int pid){
 
 }
 
+
 void processInterrupt(); //Final de quantum time
-void processCreate();
+pcb *processCreate(int pid);
 void processFinish();
 void semaphoreP();
 void semaphoreV();
 void memLoadReq();
 void memLoadFinish();
 
+pcb *processCreate(int pid){
+
+  pcb *process;
+  process = (pcb*)malloc(sizeof(pcb));
+
+  if(process == NULL){
+    printf("falha na alocacao de processo");
+    exit(1);
+  }
+  process->pid = pid;
+  process->next = NULL;
+  process->quantum = 0;
+
+  newNode(processHighPriorityList, process);
+
+  return process;
+}
 
 #endif
