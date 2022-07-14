@@ -1,6 +1,6 @@
 CXX = gcc
 CXXFLAGS = -Wall -Werror -Wextra -pedantic -g -fsanitize=address
-LDFLAGS =  -fsanitize=address
+LDFLAGS =  
 
 SRC = main.c
 OBJ = $(SRC:.cc=.o)

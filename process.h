@@ -41,7 +41,7 @@ typedef struct blocoControleProcesso{
     PCB_STATE states;
     bool isHigh;
     int quantum;
-    //int instructions[1000];
+    int instructions[1000];
     struct blocoControleProcesso *next;
 }pcb;
 
@@ -88,18 +88,18 @@ void memLoadFinish();
 pcb *processCreate(int pid){
 
   pcb *process;
-  process = (pcb*)malloc(sizeof(pcb));
+  process = malloc(sizeof(pcb));
 
   if(process == NULL){
     fprintf(stderr,"ERRO: FALHA NA ALOCACAO DE PROCESSO");
     exit(1);
   }
-  process->pid = pid;
-  process->next = NULL;
-  process->quantum = 0;
-  process->states = CREATED;
-  process->isHigh = true;//pelo arquivo
-
+    process->pid = pid;//pelo arquivo
+    process->next = NULL;
+    process->quantum = 0;
+    process->states = CREATED;
+    process->isHigh = true;//pelo arquivo
+    //process->instructions = //precisa do arquivo
   return process;
 }
 
