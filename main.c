@@ -28,6 +28,7 @@ int main (void){
             newNode(lowPriorityList,aux);
         }
     }
+    free(highPriorityList);
     return 0;
 }
 

@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 unsigned int g_clock;
 /*
@@ -56,7 +57,7 @@ pcb newNode(pcb *process, pcb *novo){ //é para add no final?
 
 pcb delNode(pcb *process, int pid){
     pcb *head = process;
-    pcb *prev;
+    pcb *prev = process;
     while(process->pid!=pid){
         if (process->next==NULL){
             fprintf(stderr,"ERROR: PID DOES NOT EXIST\n");
@@ -68,10 +69,12 @@ pcb delNode(pcb *process, int pid){
     if (process->next==NULL){
         prev->next = NULL;
         free(process);
+        return *head;
     }
     else{
         prev->next = process->next;
         free(process);
+        return *head;
     }
 
 }
