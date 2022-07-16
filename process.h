@@ -11,9 +11,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <semaphore.h>
+
 
 unsigned int g_clock;
 unsigned int g_memory;
+
 /*
 TODO
     * imaginar uma forma de criar memoria de 1gb com separações de 4k //done
@@ -41,6 +44,7 @@ typedef enum PCB_STATES{
 
 typedef struct blocoControleProcesso{
     int pid;
+    char name[50];
     PCB_STATE states;
     bool isHigh;
     int quantum;
@@ -55,6 +59,7 @@ pcb newNode(pcb *process, pcb *novo){ //é para add no final?
         process = process->next;
     }
     process->next = novo;
+    novo->next = NULL;
     return *head;
 }
 
@@ -95,21 +100,23 @@ pcb *findProcess(pcb *process, int pid){
     return process;
 }
 
-void memLoadFinish(){
-    //semaforo V(mutex);
+void memLoadFinish(sem_t semaphore){
+    sem_post(&semaphore);
 }
 
-pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
+pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid, sem_t semaphore){ //sera que da pra passar semaphoro como parametro? se n vai ter que criar na main
+
     pcb *head = process;
     process = findProcess(process,pid);
     int num_of_mBlocks = (process->memory/4);
     // semaforo P(mutex);
+    sem_wait(&semaphore);
     while (!num_of_mBlocks==0){
-        memoryTotal[g_memory]->pid = pid;
+        memoryTotal[g_memory]->pid = pid; //qual o primeiro valor de g_memory?
         g_memory++;
         num_of_mBlocks--;
     }
-    memLoadFinish();
+    memLoadFinish(semaphore);
     return *head;
 }
 
