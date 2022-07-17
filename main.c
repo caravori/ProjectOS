@@ -15,6 +15,8 @@ int main (void){
     pcb *lowPriorityList = NULL;
     aux = processCreate(1);
     //printf("AQUIOH %d\n",highPriorityList->states);
+
+    //com as duas listas criadas, crie duas threads para executar as tarefas, 2 semaforos para high e 1 para low 
     if (aux->isHigh==true){
         if(highPriorityList==NULL){
             highPriorityList = aux;
