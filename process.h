@@ -42,15 +42,10 @@ typedef enum PCB_STATES{
 typedef struct blocoControleProcesso{
     int pid;
     PCB_STATE states;
-<<<<<<< HEAD
     bool isHigh;
     int quantum;
     int memory;
     int instructions[1000];
-=======
-    unsigned int quantum;
-    char instructions[1000];
->>>>>>> main
     struct blocoControleProcesso *next;
 }pcb;
 
@@ -87,7 +82,6 @@ pcb processFinish(pcb *process, int pid){
 
 }
 
-<<<<<<< HEAD
 pcb *findProcess(pcb *process, int pid){
     while (!(process->pid==pid))
     {
@@ -124,17 +118,6 @@ pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
 void processInterrupt(); //Final de quantum time
 void semaphoreP();
 void semaphoreV();
-=======
-pcb processCreate(){//TA FUDIDO HELP
-}
-
-void processInterrupt(); //Final de quantum time
-void processFinish();
-void semaphoreP();
-void semaphoreV();
-void memLoadReq(pcb *process, int pid);
-void memLoadFinish();
->>>>>>> main
 
 
 pcb *processCreate(int pid){

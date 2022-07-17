@@ -6,7 +6,6 @@
 void menu();
 
 int main (void){
-<<<<<<< HEAD
     g_clock  = 0;
     g_memory = 0;
     memoryType *memoryTotal = malloc(sizeof(memoryType));
@@ -34,10 +33,6 @@ int main (void){
     }
     free(highPriorityList);
     free(memoryTotal);
-=======
-    g_clock = 0;
-    //printf("Sizeof pcb:%ld, sizeof memory:%ld",sizeof(pcb),sizeof(memory));   
->>>>>>> main
     return 0;
 }
 
