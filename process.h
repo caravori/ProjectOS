@@ -83,6 +83,92 @@ pcb delNode(pcb *process, int pid){
 pcb processCreate(){//TA FUDIDO HELP
 }
 
+void round_robin(pcb *process_list){
+    //Round Robin deixa um processo executar por um quantum time
+    //depois, passa para o próximo processo
+
+    //Quantum Time: tempo que cada processo fica com a cpu
+
+    //Burst time: tempo pro processor ser finalizado
+
+    //Turnaround Time: diferença entre o tempo para ser completado
+    //(Burst Time) e o tempo que surgiu (Arrival Time)
+
+    //Waiting Time: é a diferença entre Turnaround Time e BurstTime
+
+    //Arrival Time: quando, na ordem, o processo surgiu
+
+    //Completion Time: é o tempo em que o processo está completo
+
+    //Remain Time: é o tempo que resta para um processo terminar
+
+    //(OBS: não o tempo que leva, mas sim quando, na marcação de tempo)
+
+    int i, size, *burst_time, *turnaround_time, wait_time, remain, 
+    *arrival_time, *completion_time, *remain_time, time = 0, flag = 0;
+
+    size = size_queue(process_list);
+    remain = size;
+
+    burst_time = malloc(sizeof(int) * size);
+    turnaround_time = malloc(sizeof(int) * size);
+    arrival_time = malloc(sizeof(int) * size);
+    completion_time = malloc(sizeof(int) * size);
+    remain_time = malloc(sizeof(int) * size);
+
+    while(process_list->next != NULL){
+        //Como faço para o processo executar?
+        for(time = 0; i = 0; remain != 0){
+            if(remain_time[i] <= process_list->quantum && remain_time[i] > 0){
+                
+                time += remain_time[i];
+                remain_time[i] = 0;
+                flag = 1;
+
+            }
+            else if(remain_time[i] > 0){
+
+                remain_time[i] -= process_list->quantum;
+                time += process_list->quantum;
+            
+            }
+
+            if(remain_time[i] == 0 && flag == 1){
+                
+                remain--;
+                printf("P[%d\t|\t%d\t|\t%d\n", i+1, time - arrival_time[i],
+                time - arrival_time[i] - burst_time[i]);
+
+                wait_time += time - arrival_time[i] - burst_time[i];
+                turnaround_time += time - arrival_time[i];
+
+                flag = 0;
+            }
+
+            if(i == size - 1)
+                i = 0;
+            else if(arrival_time[i+1] <= time)
+                i++;
+            else
+                i = 0;
+        }
+
+        printf("\nMédia de Waiting Time = %f\n", wait_time*1.0/size);
+        printf("Média de Turnaround Time = %f", turnaround_time[i]*1.0/size);
+    }
+
+}
+
+int size_queue(pcb *process_list){
+    int cont = 0;
+    while(process_list->next != NULL){
+        cont++;
+        process_list = process_list->next;
+    }
+    return cont;
+}
+
+int size_queue(pcb *process_list);
 void processInterrupt(); //Final de quantum time
 void processFinish();
 void semaphoreP();
