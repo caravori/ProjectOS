@@ -11,9 +11,15 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <semaphore.h>
 
 unsigned int g_clock;
 unsigned int g_memory;
+
+sem_t semaphore;
+sem_t round_sem;
+pthread_mutex_t mutexBuffer;
+
 /*
 TODO
     * imaginar uma forma de criar memoria de 1gb com separações de 4k //done
@@ -97,8 +103,11 @@ pcb *findProcess(pcb *process, int pid){
     return process;
 }
 
+
+//
 void memLoadFinish(){
     //semaforo V(mutex);
+    sem_post(&semaphore);
 }
 
 pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
@@ -106,19 +115,20 @@ pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     process = findProcess(process,pid);
     int num_of_mBlocks = (process->memory/4);
     // semaforo P(mutex);
+    sem_wait(&semaphore);
     while (!num_of_mBlocks==0){
         memoryTotal[g_memory]->pid = pid;
         g_memory++;
         num_of_mBlocks--;
     }
-    memLoadFinish();
+    memLoadFinish(semaphore);
     return *head;
 }
 
 pcb *processInterrupt(pcb *process){
     pcb *aux = process->next;
     process->next = NULL;
-    process->states = READY;
+    process->states = BLOCKED;
     newNode(aux,process);
     return aux;
 }
@@ -127,6 +137,7 @@ pcb *processInterrupt(pcb *process){
 pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
+    sem_wait(&round_sem);
     process->states = RUNNING;
     int arrival_time = g_clock;
     pcb *head = process;
@@ -164,16 +175,39 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
         break;
     }
     printf("Arrival_TIME %d ", arrival_time);
+    sem_post(&round_sem);
     return head;
     
 }
 
 
-void semaphoreP();
-void semaphoreV();
+
+void semaphoreP(int mutex, pcb *process){
+
+    if(mutex > 0){
+        mutex--;
+        pthread_mutex_unlock(&mutexBuffer); 
+        //unlocked
+    }else {
+        
+        pthread_mutex_lock(&mutexBuffer);
+        process->states = BLOCKED;
+        //lock;
+        
+    }
+}
+
+void semaphoreV(int mutex, pcb *process){
+    
+    if(process->states == BLOCKED){
+        mutex++;
+        
+    }
+    
+} 
 
 
-pcb *processCreate(int pid){
+pcb *processCreate(int pid,int quantum, bool isHigh, int tamanho){
 
   pcb *process;
   process = malloc(sizeof(pcb));
@@ -184,9 +218,10 @@ pcb *processCreate(int pid){
   }
     process->pid = pid;//pelo arquivo
     process->next = NULL;
-    process->quantum = 0;
+    process->quantum = quantum;
     process->states = CREATED;
-    process->isHigh = true;//pelo arquivo
+    process->isHigh = isHigh;//pelo arquivo
+    process->memory = tamanho;
     //process->instructions = //precisa do arquivo
   return process;
 }

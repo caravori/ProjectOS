@@ -10,7 +10,7 @@ sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
 
-pcb criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal);
+pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 int main (void){
@@ -25,10 +25,8 @@ int main (void){
     
     memoryType *memoryTotal = malloc(sizeof(memoryType));
 
-    pcb *aux;
     pcb *highPriorityList = NULL;
     pcb *lowPriorityList = NULL;
-    pcb *proxima_tarefa;
     //com as duas listas criadas, crie duas threads para executar as tarefas,
 
     while(op != 0){
@@ -50,24 +48,24 @@ int main (void){
                 flagH = 1;
         }
         else if(flagH!=1){
-            pthread_create(&threads[0], NULL, round_robin,highPriorityList);
-            pthread_join(&thread[0],&highPriorityList);
+            pthread_create(&threads[0], NULL, &round_robin,&highPriorityList);
+            pthread_join(&threads[0],&highPriorityList);
 
         }
         if(highPriorityList==NULL){
                 flagH = 1;
         }
         else if(flagH!=1){
-            pthread_create(&threads[1], NULL, round_robin,highPriorityList);
-            pthread_join(&thread[1],&highPriorityList);
+            pthread_create(&threads[1], NULL, &round_robin,&highPriorityList);
+            pthread_join(&threads[1],&highPriorityList);
 
         }
         if(lowPriorityList==NULL){
                 flagL = 1;
         }
         else if(flagL!=1){
-            pthread_create(&threads[2], NULL, round_robin,lowPriorityList);
-            pthread_join(&thread[2],&lowPriorityList);
+            pthread_create(&threads[2], NULL, &round_robin,&lowPriorityList);
+            pthread_join(&threads[2],&lowPriorityList);
 
         }
     }
@@ -99,18 +97,27 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
     int pid,quantum, memory;
     int isHigh;
     printf("\nPID: ");
-    scanf("%d",&pid);
+    if (scanf("%d",&pid)!=1){
+        fprintf(stderr,"ERROR AT SCAN");
+    }
     setbuf(stdin,NULL);
     printf("\nQuantum time:");
-    scanf("%d", &quantum);
+
+    if(scanf("%d", &quantum)!=1){
+        fprintf(stderr,"ERROR AT SCAN");
+    }
     setbuf(stdin,NULL);
     printf("\neh alta prioridade? (1 or 0): ");
-    scanf("%d", &isHigh);
+    if (scanf("%d", &isHigh)!=1){
+        fprintf(stderr,"ERROR AT SCAN");
+    }
     setbuf(stdin,NULL);
     
     do{
     printf("\nQuantidade de memoria em Kb (multiplo de 4): ");
-    scanf("%d", &memory);
+    if (scanf("%d", &memory)!=1){
+        fprintf(stderr,"ERROR AT SCAN");
+    }
     setbuf(stdin,NULL);
     }while((memory%4) != 0);
     
