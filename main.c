@@ -15,7 +15,7 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 int main (void){
-    int op = 100;
+    int op = 100, i=0;
     int flagH = 0;
     int flagL = 0;
     g_clock  = 0;
@@ -52,7 +52,11 @@ int main (void){
             break;
         }
     }
-    printf("SAIU DE LA");
+    while (i < g_memory){
+        printf("\tMEMORY BLOCK %d OCCUPIED FOR PID %d\n",i,memoryTotal[i].pid);
+        i++;
+    }
+    
     while(1){
        /* if(highPriorityList==NULL){
                 flagH = 1;
@@ -98,13 +102,13 @@ int main (void){
             lowPriorityList = round_robin(lowPriorityList);
         }
         
-        if(highPriorityList==NULL&&lowPriorityList==NULL){
+        if(flagH==1 && flagL==1){
             break;
         }
         
     }
 
-    free_memory(highPriorityList,lowPriorityList);
+    //free_memory(highPriorityList,lowPriorityList);
     free(memoryTotal);
     
     return 0;
@@ -153,16 +157,18 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
         fprintf(stderr,"ERROR AT SCAN");
     }
     setbuf(stdin,NULL);
-    }while((memory%4) != 0);
+    }while((memory%4&&memory<4) != 0);
     
     pcb *aux = processCreate(pid,quantum,isHigh,memory);
     
     if (aux->isHigh==true){
         if(highPriorityList==NULL){
             highPriorityList = aux;
+            printf("\n--Primeiro Nó de alta prioridade CRIADO COM SUCESSO!--\n");
         }
         else{
            highPriorityList = newNode(highPriorityList,aux);
+           printf("\n--Nó de alta prioridade adicionado com SUCESSO!--\n");
         }
         highPriorityList = memLoadReq(highPriorityList,memoryTotal,aux->pid);
         return(highPriorityList);
@@ -170,9 +176,12 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
     else{
         if(lowPriorityList==NULL){
             lowPriorityList = aux;
+            printf("\n--Primeiro Nó de baixa prioridade CRIADO COM SUCESSO!--\n");
         }
         else{
             lowPriorityList = newNode(lowPriorityList,aux);
+            printf("\n--Nó de baixa prioridade adicionado com SUCESSO!--\n");
+
         }
         lowPriorityList = memLoadReq(lowPriorityList,memoryTotal,aux->pid);
         return(lowPriorityList);

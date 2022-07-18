@@ -58,6 +58,7 @@ typedef struct blocoControleProcesso{
 pcb *newNode(pcb *process, pcb *novo){ //é para add no final?
     pcb *head = process;
     while(process->next!=NULL){
+        printf("%d - ",process->pid);
         process = process->next;
     }
     process->next = novo;
@@ -76,12 +77,14 @@ pcb *processFinish(pcb *process, int pid){
         process = process->next;
     }
     if (process->next==NULL){
-        prev->next = NULL;
+        //prev->next = NULL;
+        printf("FREE AT PROCESS NULL %d\n",process->pid);
         free(process);
         return prev;
     }
     else{
         prev->next = process->next;
+        printf("FREE AT PROCESS %d\n",process->pid);
         free(process);
         return prev;
     }
@@ -115,7 +118,7 @@ pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     // semaforo P(mutex);
     sem_wait(&semaphore);
     while (num_of_mBlocks!=0){
-        memoryTotal[1].pid = pid;
+        memoryTotal[g_memory].pid = pid;
         g_memory++;
         num_of_mBlocks--;
     }
@@ -124,10 +127,14 @@ pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
 }
 
 pcb *processInterrupt(pcb *process){
+    if(process->next==NULL){
+        return process;
+    }
     pcb *aux = process->next;
     process->next = NULL;
     process->states = BLOCKED;
-    newNode(aux,process);
+    printf("Process PID %d BLOCKED\n",process->pid); 
+    aux = newNode(aux,process);
     return aux;
 }
 
@@ -137,9 +144,9 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
     //semaforo
     sem_wait(&round_sem);
     process->states = RUNNING;
-    printf("N SEI VAMO VER\n");
     int arrival_time = g_clock;
     pcb *head = process;
+    printf("Arrival_TIME %d \n", arrival_time);
     //pegue instruções ate chegar a 1000 ou 2000
     switch (process->isHigh)
     {
@@ -147,6 +154,7 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
         if (process->quantum>1000){
             g_clock +=1000;
             process->quantum -=1000 ;
+            printf("PROCESS PID %d -1000 STATE RUNNING\n",process->pid);
             //goto final da lista
             head = processInterrupt(process);
 
@@ -154,7 +162,14 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
         else{
             g_clock += process->quantum;
             process->quantum = 0;
-            head = processFinish(process,process->pid);
+            printf("PROCESS PID %d FINISH\n",process->pid);
+            if(process->next!=NULL){
+                head = process->next;
+            }
+            else if(process->next==NULL){
+                head = NULL;
+            }
+            processFinish(process,process->pid);
         }
         break;
     
@@ -162,18 +177,25 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
         if (process->quantum>2000){
             g_clock +=2000;
             process->quantum = process->quantum-2000;
+            printf("PROCESS PID %d -2000 STATE RUNNING\n",process->pid);
             //goto final da lista 
             head = processInterrupt(process);
 
         }
         else{
             g_clock += process->quantum;
+            if(process->next!=NULL){
+                head = process->next;
+            }
+            else if(process->next==NULL){
+                head = NULL;
+            }
             //process finish
-            head = processFinish(process,process->pid);
+            printf("PROCESS PID %d FINISH\n",process->pid);
+            processFinish(process,process->pid);
         }
         break;
     }
-    printf("Arrival_TIME %d ", arrival_time);
     sem_post(&round_sem);
     return head;
     
