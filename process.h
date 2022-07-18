@@ -51,13 +51,13 @@ typedef struct blocoControleProcesso{
     struct blocoControleProcesso *next;
 }pcb;
 
-pcb newNode(pcb *process, pcb *novo){ //é para add no final?
+pcb *newNode(pcb *process, pcb *novo){ //é para add no final?
     pcb *head = process;
     while(process->next!=NULL){
         process = process->next;
     }
     process->next = novo;
-    return *head;
+    return head;
 }
 
 pcb *processFinish(pcb *process, int pid){
@@ -118,7 +118,7 @@ pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
 pcb *processInterrupt(pcb *process){
     pcb *aux = process->next;
     process->next = NULL;
-    process->states = BLOCKED;
+    process->states = READY;
     newNode(aux,process);
     return aux;
 }
@@ -134,7 +134,7 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
     switch (process->isHigh)
     {
     case true:
-        if (process->quantum>=1000){
+        if (process->quantum>1000){
             g_clock +=1000;
             process->quantum = process->quantum-1000;
             //goto final da lista
@@ -149,7 +149,7 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
         break;
     
     case false:
-        if (process->quantum>=2000){
+        if (process->quantum>2000){
             g_clock +=2000;
             process->quantum = process->quantum-2000;
             //goto final da lista 
