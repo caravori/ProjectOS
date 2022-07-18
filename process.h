@@ -60,13 +60,13 @@ pcb newNode(pcb *process, pcb *novo){ //é para add no final?
     return *head;
 }
 
-pcb processFinish(pcb *process, int pid){
+pcb *processFinish(pcb *process, int pid){
     pcb *head = process;
     pcb *prev = process;
     while(process->pid!=pid){
         if (process->next==NULL){
             fprintf(stderr,"ERROR: PID DOES NOT EXIST\n");
-            return *head;
+            return head;
         }
         prev = process;
         process = process->next;
@@ -74,12 +74,12 @@ pcb processFinish(pcb *process, int pid){
     if (process->next==NULL){
         prev->next = NULL;
         free(process);
-        return *head;
+        return head;
     }
     else{
         prev->next = process->next;
         free(process);
-        return *head;
+        return head;
     }
 
 }
@@ -115,12 +115,21 @@ pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     return *head;
 }
 
+pcb *processInterrupt(pcb *process){
+    pcb *aux = process->next;
+    process->next = NULL;
+    process->states = BLOCKED;
+    newNode(aux,process);
+    return aux;
+}
 
-void round_robinho(pcb *process){
+
+pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
     process->states = RUNNING;
     int arrival_time = g_clock;
+    pcb *head = process;
     //pegue instruções ate chegar a 1000 ou 2000
     switch (process->isHigh)
     {
@@ -129,9 +138,14 @@ void round_robinho(pcb *process){
             g_clock +=1000;
             process->quantum = process->quantum-1000;
             //goto final da lista
-            processInterrupt(process);
+            head = processInterrupt(process);
 
-    }
+        }
+        else{
+            g_clock += process->quantum;
+            //process finish
+            head = processFinish(process,process->pid);
+        }
         break;
     
     case false:
@@ -139,103 +153,22 @@ void round_robinho(pcb *process){
             g_clock +=2000;
             process->quantum = process->quantum-2000;
             //goto final da lista 
-            processInterrupt(process)
+            head = processInterrupt(process);
 
+        }
+        else{
+            g_clock += process->quantum;
+            //process finish
+            head = processFinish(process,process->pid);
         }
         break;
     }
+    printf("Arrival_TIME %d ", arrival_time);
+    return head;
     
 }
 
-void round_robin(pcb *process_list){
-    //Round Robin deixa um processo executar por um quantum time
-    //depois, passa para o próximo processo
 
-    //Quantum Time: tempo que cada processo fica com a cpu
-
-    //Burst time: tempo pro processor ser finalizado
-
-    //Turnaround Time: diferença entre o tempo para ser completado
-    //(Burst Time) e o tempo que surgiu (Arrival Time)
-
-    //Waiting Time: é a diferença entre Turnaround Time e BurstTime
-
-    //Arrival Time: quando, na ordem, o processo surgiu
-
-    //Completion Time: é o tempo em que o processo está completo
-
-    //Remain Time: é o tempo que resta para um processo terminar
-
-    //(OBS: não o tempo que leva, mas sim quando, na marcação de tempo)
-
-    int i, size, *burst_time, *turnaround_time, wait_time, remain, 
-    *arrival_time, *completion_time, *remain_time, flag = 0;
-
-    size = size_queue(process_list);
-    remain = size;
-
-    burst_time = malloc(sizeof(int) * size);
-    turnaround_time = malloc(sizeof(int) * size);
-    arrival_time = malloc(sizeof(int) * size);
-    completion_time = malloc(sizeof(int) * size);
-    remain_time = malloc(sizeof(int) * size);
-
-    while(process_list->next != NULL){
-        //Como faço para o processo executar?
-        for(g_clock = 0; i = 0; remain != 0){
-            if(remain_time[i] <= process_list->quantum && remain_time[i] > 0){
-                
-                g_clock += remain_time[i];
-                remain_time[i] = 0;
-                flag = 1;
-
-            }
-            else if(remain_time[i] > 0){
-
-                remain_time[i] -= process_list->quantum;
-                g_clock += process_list->quantum;
-            
-            }
-
-            if(remain_time[i] == 0 && flag == 1){
-                
-                remain--;
-                printf("P[%d\t|\t%d\t|\t%d\n", i+1, g_clock - arrival_time[i],
-                g_clock - arrival_time[i] - burst_time[i]);
-
-                wait_time += g_clock - arrival_time[i] - burst_time[i];
-                turnaround_time += g_clock - arrival_time[i];
-
-                flag = 0;
-            }
-
-            if(i == size - 1)
-                i = 0;
-            else if(arrival_time[i+1] <= g_clock)
-                i++;
-            else
-                i = 0;
-        }
-
-        printf("\nMédia de Waiting Time = %f\n", wait_time*1.0/size);
-        printf("Média de Turnaround Time = %f", turnaround_time[i]*1.0/size);
-    }
-
-}
-
-int size_queue(pcb *process_list){
-    int cont = 0;
-    while(process_list->next != NULL){
-        cont++;
-        process_list = process_list->next;
-    }
-    return cont;
-}
-
-
-
-
-void processInterrupt(); //Final de quantum time
 void semaphoreP();
 void semaphoreV();
 
