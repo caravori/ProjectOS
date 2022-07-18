@@ -6,8 +6,11 @@
 
 pthread_t threads[2];
 
-void menu();
-pcb criar_processo();
+sem_t semaphore;
+sem_t round_sem;
+pthread_mutex_t mutexBuffer;
+
+pcb criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 int main (void){
@@ -25,14 +28,14 @@ int main (void){
     pcb *aux;
     pcb *highPriorityList = NULL;
     pcb *lowPriorityList = NULL;
-    pcb *proxima_tarefa
+    pcb *proxima_tarefa;
     //com as duas listas criadas, crie duas threads para executar as tarefas,
 
-    while(op! = 0){
+    while(op != 0){
         printf("\t\tMenu\n\t1-Criar Processo\t0-Iniciar Simulacao\nop: ");
         switch (op){
         case 1:
-            criar_processo(highPriorityList,lowPriorityList);
+            criar_processo(highPriorityList,lowPriorityList,memoryTotal);
             break;
         case 0:
             break;
@@ -48,7 +51,7 @@ int main (void){
         }
         else if(flagH!=1){
             pthread_create(&threads[0], NULL, round_robin,highPriorityList);
-            pthread_join(&thread[0],highPriorityList);
+            pthread_join(&thread[0],&highPriorityList);
 
         }
         if(highPriorityList==NULL){
@@ -56,7 +59,7 @@ int main (void){
         }
         else if(flagH!=1){
             pthread_create(&threads[1], NULL, round_robin,highPriorityList);
-            pthread_join(&thread[1],highPriorityList);
+            pthread_join(&thread[1],&highPriorityList);
 
         }
         if(lowPriorityList==NULL){
@@ -64,7 +67,7 @@ int main (void){
         }
         else if(flagL!=1){
             pthread_create(&threads[2], NULL, round_robin,lowPriorityList);
-            pthread_join(&thread[2],lowPriorityList);
+            pthread_join(&thread[2],&lowPriorityList);
 
         }
     }
@@ -94,14 +97,14 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
 
 pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
     int pid,quantum, memory;
-    bool isHigh;
+    int isHigh;
     printf("\nPID: ");
     scanf("%d",&pid);
     setbuf(stdin,NULL);
     printf("\nQuantum time:");
     scanf("%d", &quantum);
     setbuf(stdin,NULL);
-    printf("\neh alta prioridade? (true or false): ");
+    printf("\neh alta prioridade? (1 or 0): ");
     scanf("%d", &isHigh);
     setbuf(stdin,NULL);
     
@@ -109,9 +112,9 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
     printf("\nQuantidade de memoria em Kb (multiplo de 4): ");
     scanf("%d", &memory);
     setbuf(stdin,NULL);
-    }while((memory/4) != 0);
+    }while((memory%4) != 0);
     
-    pcb *aux = processCreate(pid,quantum,isHigh);
+    pcb *aux = processCreate(pid,quantum,isHigh,memory);
     
     if (aux->isHigh==true){
         if(highPriorityList==NULL){
