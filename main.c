@@ -98,6 +98,9 @@ int main (void){
             lowPriorityList = round_robin(lowPriorityList);
         }
         
+        if(highPriorityList==NULL&&lowPriorityList==NULL){
+            break;
+        }
         
     }
 

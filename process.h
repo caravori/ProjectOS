@@ -78,12 +78,12 @@ pcb *processFinish(pcb *process, int pid){
     if (process->next==NULL){
         prev->next = NULL;
         free(process);
-        return head;
+        return prev;
     }
     else{
         prev->next = process->next;
         free(process);
-        return head;
+        return prev;
     }
 
 }
@@ -137,6 +137,7 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
     //semaforo
     sem_wait(&round_sem);
     process->states = RUNNING;
+    printf("N SEI VAMO VER\n");
     int arrival_time = g_clock;
     pcb *head = process;
     //pegue instruções ate chegar a 1000 ou 2000
@@ -145,14 +146,14 @@ pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera imp
     case true:
         if (process->quantum>1000){
             g_clock +=1000;
-            process->quantum = process->quantum-1000;
+            process->quantum -=1000 ;
             //goto final da lista
             head = processInterrupt(process);
 
         }
         else{
             g_clock += process->quantum;
-            //process finish
+            process->quantum = 0;
             head = processFinish(process,process->pid);
         }
         break;
