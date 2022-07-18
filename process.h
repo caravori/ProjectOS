@@ -14,7 +14,7 @@
 #include <semaphore.h>
 
 unsigned int g_clock;
-unsigned int g_memory;
+int g_memory;
 
 sem_t semaphore;
 sem_t round_sem;
@@ -35,9 +35,7 @@ TODO
 typedef struct memory{
     int             pid;
     int32_t         mem[1000];//4kb de inteiros
-    struct memory   *next;
-    struct memory   *prev;
-}memoryType[MAX_MEMORY];//1gb de memoria
+}memoryType;//1gb de memoria
 
 typedef enum PCB_STATES{
     CREATED = 0,
@@ -110,19 +108,19 @@ void memLoadFinish(){
     sem_post(&semaphore);
 }
 
-pcb memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
+pcb *memLoadReq(pcb *process, memoryType memoryTotal,int pid){
     pcb *head = process;
-    process = findProcess(process,pid);
+    //process = findProcess(process,pid);
     int num_of_mBlocks = (process->memory/4);
     // semaforo P(mutex);
     sem_wait(&semaphore);
-    while (!num_of_mBlocks==0){
-        memoryTotal[g_memory]->pid = pid;
+    while (num_of_mBlocks!=0){
+        memoryTotal[1].pid = pid;
         g_memory++;
         num_of_mBlocks--;
     }
     memLoadFinish(semaphore);
-    return *head;
+    return head;
 }
 
 pcb *processInterrupt(pcb *process){

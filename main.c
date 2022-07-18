@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
 
 #include "process.h"
 
@@ -23,7 +24,7 @@ int main (void){
     sem_init(&round_sem, 0,1);
     pthread_mutex_init(&mutexBuffer, NULL);
     
-    memoryType *memoryTotal = malloc(sizeof(memoryType));
+    memoryType memoryTotal[100];
 
     pcb *highPriorityList = NULL;
     pcb *lowPriorityList = NULL;
@@ -31,9 +32,12 @@ int main (void){
 
     while(op != 0){
         printf("\t\tMenu\n\t1-Criar Processo\t0-Iniciar Simulacao\nop: ");
+        if(scanf("%d",&op)!=1){
+            fprintf(stderr,"ERROR AT SCAN");
+        }
         switch (op){
         case 1:
-            criar_processo(highPriorityList,lowPriorityList,memoryTotal);
+            criar_processo(highPriorityList,lowPriorityList,&memoryTotal);
             break;
         case 0:
             break;
@@ -44,12 +48,12 @@ int main (void){
     }
 
     while(1){
-        if(highPriorityList==NULL){
+       /* if(highPriorityList==NULL){
                 flagH = 1;
         }
         else if(flagH!=1){
-            pthread_create(&threads[0], NULL, &round_robin,&highPriorityList);
-            pthread_join(&threads[0],&highPriorityList);
+            pthread_create(threads[0], NULL, round_robin,highPriorityList);
+            pthread_join(threads[0],highPriorityList);
 
         }
         if(highPriorityList==NULL){
@@ -67,7 +71,28 @@ int main (void){
             pthread_create(&threads[2], NULL, &round_robin,&lowPriorityList);
             pthread_join(&threads[2],&lowPriorityList);
 
+        }*/
+
+         if(highPriorityList==NULL){
+            flagH = 1;
         }
+        else if(flagH!=1){
+            highPriorityList = round_robin(highPriorityList);
+        }
+        if(highPriorityList==NULL){
+                flagH = 1;
+        }
+        else if(flagH!=1){
+            highPriorityList = round_robin(highPriorityList);
+        }
+        if(lowPriorityList==NULL){
+                flagL = 1;
+        }
+        else if(flagL!=1){
+            lowPriorityList = round_robin(lowPriorityList);
+        }
+        
+        
     }
 
     free_memory(highPriorityList,lowPriorityList);
@@ -93,7 +118,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
+pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType memoryTotal){
     int pid,quantum, memory;
     int isHigh;
     printf("\nPID: ");
@@ -130,7 +155,7 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
         else{
            highPriorityList = newNode(highPriorityList,aux);
         }
-        memLoadReq(highPriorityList,memoryTotal,aux->pid);
+        highPriorityList = memLoadReq(highPriorityList,&memoryTotal,aux->pid);
         return(highPriorityList);
     }
     else{
@@ -140,7 +165,7 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
         else{
             lowPriorityList = newNode(lowPriorityList,aux);
         }
-        memLoadReq(lowPriorityList,memoryTotal,aux->pid);
+        lowPriorityList = memLoadReq(lowPriorityList,&memoryTotal,aux->pid);
         return(lowPriorityList);
     }
 }
