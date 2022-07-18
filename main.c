@@ -25,7 +25,7 @@ int main (void){
     pthread_mutex_init(&mutexBuffer, NULL);
     
     memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
-
+    pcb *aux = NULL;
     pcb *highPriorityList = NULL;
     pcb *lowPriorityList = NULL;
     //com as duas listas criadas, crie duas threads para executar as tarefas,
@@ -37,7 +37,13 @@ int main (void){
         }
         switch (op){
         case 1:
-            criar_processo(highPriorityList,lowPriorityList,memoryTotal);
+            aux = criar_processo(highPriorityList,lowPriorityList,memoryTotal);
+            if (aux->isHigh==true){
+                highPriorityList = aux;
+            }
+            else{
+                lowPriorityList = aux;
+            }
             break;
         case 0:
             break;
@@ -46,7 +52,7 @@ int main (void){
             break;
         }
     }
-
+    printf("SAIU DE LA");
     while(1){
        /* if(highPriorityList==NULL){
                 flagH = 1;
