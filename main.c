@@ -46,6 +46,7 @@ int main (void){
         if(aux_rr->quantum > 0)counter++;
         aux_rr = aux_rr->next;
     }
+    aux_rr = highPriorityList;  
     while(counter > 0){
         
         if(aux_rr->quantum < QUANTUM_TIME_HIGH && aux_rr->quantum > 0){
