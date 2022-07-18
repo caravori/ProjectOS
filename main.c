@@ -24,7 +24,7 @@ int main (void){
     sem_init(&round_sem, 0,1);
     pthread_mutex_init(&mutexBuffer, NULL);
     
-    memoryType memoryTotal[100];
+    memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
 
     pcb *highPriorityList = NULL;
     pcb *lowPriorityList = NULL;
@@ -37,7 +37,7 @@ int main (void){
         }
         switch (op){
         case 1:
-            criar_processo(highPriorityList,lowPriorityList,&memoryTotal);
+            criar_processo(highPriorityList,lowPriorityList,memoryTotal);
             break;
         case 0:
             break;
@@ -118,7 +118,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType memoryTotal){
+pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
     int pid,quantum, memory;
     int isHigh;
     printf("\nPID: ");
@@ -155,7 +155,7 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType memor
         else{
            highPriorityList = newNode(highPriorityList,aux);
         }
-        highPriorityList = memLoadReq(highPriorityList,&memoryTotal,aux->pid);
+        highPriorityList = memLoadReq(highPriorityList,memoryTotal,aux->pid);
         return(highPriorityList);
     }
     else{
@@ -165,7 +165,7 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType memor
         else{
             lowPriorityList = newNode(lowPriorityList,aux);
         }
-        lowPriorityList = memLoadReq(lowPriorityList,&memoryTotal,aux->pid);
+        lowPriorityList = memLoadReq(lowPriorityList,memoryTotal,aux->pid);
         return(lowPriorityList);
     }
 }

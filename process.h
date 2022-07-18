@@ -108,7 +108,7 @@ void memLoadFinish(){
     sem_post(&semaphore);
 }
 
-pcb *memLoadReq(pcb *process, memoryType memoryTotal,int pid){
+pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     pcb *head = process;
     //process = findProcess(process,pid);
     int num_of_mBlocks = (process->memory/4);
