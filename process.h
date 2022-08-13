@@ -19,6 +19,7 @@ int g_memory;
 sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
+pcb *head;
 
 /*
 TODO
@@ -106,23 +107,26 @@ pcb *findProcess(pcb *process, int pid){
 
 
 //
-void memLoadFinish(){
-    //semaforo V(mutex);
-    sem_post(&semaphore);
+void memLoadFinish(int pid, memoryType *memoryTotal){
+    //clean memoryTotal of pid 
+    int i = 0;
+    while(memoryTotal[i].pid!=pid){
+        i++;
+    }
+    while(memoryTotal[i].pid==pid){
+        memoryTotal[i].pid = 0;
+        i++;
+    }
 }
 
 pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     pcb *head = process;
-    //process = findProcess(process,pid);
     int num_of_mBlocks = (process->memory/4);
-    // semaforo P(mutex);
-    sem_wait(&semaphore);
     while (num_of_mBlocks!=0){
         memoryTotal[g_memory].pid = pid;
         g_memory++;
         num_of_mBlocks--;
     }
-    memLoadFinish(semaphore);
     return head;
 }
 
@@ -139,7 +143,7 @@ pcb *processInterrupt(pcb *process){
 }
 
 
-pcb *round_robin(pcb *process){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
+void round_robin(){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
     sem_wait(&round_sem);
@@ -245,6 +249,18 @@ pcb *processCreate(int pid,int quantum, bool isHigh, int tamanho){
     process->memory = tamanho;
     //process->instructions = //precisa do arquivo
   return process;
+}
+
+//execute process
+pcb *processExec(pcb *process){
+    process->states = RUNNING;
+    
+    return process;
+}
+
+//DiskRequest
+void diskRequest(pcb *process){
+
 }
 
 #endif

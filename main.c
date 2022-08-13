@@ -13,11 +13,13 @@ pthread_mutex_t mutexBuffer;
 
 pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
+int pid;
 
 int main (void){
     int op = 100, i=0;
     int flagH = 0;
     int flagL = 0;
+    pid = 0;
     g_clock  = 0;
     g_memory = 0;
     sem_init(&semaphore, 0,1);
@@ -58,30 +60,6 @@ int main (void){
     }
     
     while(1){
-       /* if(highPriorityList==NULL){
-                flagH = 1;
-        }
-        else if(flagH!=1){
-            pthread_create(threads[0], NULL, round_robin,highPriorityList);
-            pthread_join(threads[0],highPriorityList);
-
-        }
-        if(highPriorityList==NULL){
-                flagH = 1;
-        }
-        else if(flagH!=1){
-            pthread_create(&threads[1], NULL, &round_robin,&highPriorityList);
-            pthread_join(&threads[1],&highPriorityList);
-
-        }
-        if(lowPriorityList==NULL){
-                flagL = 1;
-        }
-        else if(flagL!=1){
-            pthread_create(&threads[2], NULL, &round_robin,&lowPriorityList);
-            pthread_join(&threads[2],&lowPriorityList);
-
-        }*/
 
          if(highPriorityList==NULL){
             flagH = 1;
@@ -132,7 +110,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
 }
 
 pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
-    int pid,quantum, memory;
+    int quantum, memory;
     int isHigh;
     printf("\nPID: ");
     if (scanf("%d",&pid)!=1){
