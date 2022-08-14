@@ -12,14 +12,19 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <semaphore.h>
+#include <ctype.h>
+#include <string.h>
+
 
 unsigned int g_clock;
 int g_memory;
+int pid;
 
 sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
-pcb *head;
+
+//prototypes of functions
 
 /*
 TODO
@@ -32,6 +37,20 @@ TODO
     * com isso a lista de maior prioridade roda 2x e a de menor uma vez so, faz sentido? 
 
 */
+
+typedef enum instruction{
+    exec = 0,
+    read,
+    write,
+    print,
+    I_semaphore,
+    end,
+}inst;
+
+typedef struct instructionBlock{
+    inst instructionR;
+    int  timeK;
+}IB;
 
 typedef struct memory{
     int             pid;
@@ -47,17 +66,36 @@ typedef enum PCB_STATES{
 }PCB_STATE;
 
 typedef struct blocoControleProcesso{
+    char name[20];
+    int  identifier;
     int pid;
     PCB_STATE states;
     bool isHigh;
     int quantum;
     int memory;
-    int instructions[1000];
+    char semaphore[5][1];
+    IB  instructionB[1000];
     struct blocoControleProcesso *next;
 }pcb;
 
+pcb *newNode(pcb *process, pcb *novo);
+pcb *processFinish(pcb *process, int pid);
+pcb *findProcess(pcb *process, int pid);
+void memLoadFinish(int pid, memoryType *memoryTotal);
+pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid);
+pcb *processInterrupt(pcb *process);
+void round_robin();
+void semaphoreP(int mutex, pcb *process);
+void semaphoreV(int mutex, pcb *process);
+pcb *processCreate(pcb *NewProcess);
+pcb *processExec(pcb *process);
+pcb *openFile(char arch[30]);
+pcb *startProcess(FILE *fp);
+
+pcb *head;
+
 pcb *newNode(pcb *process, pcb *novo){ //é para add no final?
-    pcb *head = process;
+    head = process;
     while(process->next!=NULL){
         printf("%d - ",process->pid);
         process = process->next;
@@ -146,10 +184,11 @@ pcb *processInterrupt(pcb *process){
 void round_robin(){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
-    sem_wait(&round_sem);
-    process->states = RUNNING;
+    if (head->next==NULL){
+        sem_wait(&round_sem);
+    }
     int arrival_time = g_clock;
-    pcb *head = process;
+    pcb *process = head;
     printf("Arrival_TIME %d \n", arrival_time);
     //pegue instruções ate chegar a 1000 ou 2000
     switch (process->isHigh)
@@ -201,7 +240,6 @@ void round_robin(){ //por hora o round robin só roda exec! Sera implementado na
         break;
     }
     sem_post(&round_sem);
-    return head;
     
 }
 
@@ -232,25 +270,6 @@ void semaphoreV(int mutex, pcb *process){
 } 
 
 
-pcb *processCreate(int pid,int quantum, bool isHigh, int tamanho){
-
-  pcb *process;
-  process = malloc(sizeof(pcb));
-
-  if(process == NULL){
-    fprintf(stderr,"ERRO: FALHA NA ALOCACAO DE PROCESSO");
-    exit(1);
-  }
-    process->pid = pid;//pelo arquivo
-    process->next = NULL;
-    process->quantum = quantum;
-    process->states = CREATED;
-    process->isHigh = isHigh;//pelo arquivo
-    process->memory = tamanho;
-    //process->instructions = //precisa do arquivo
-  return process;
-}
-
 //execute process
 pcb *processExec(pcb *process){
     process->states = RUNNING;
@@ -259,8 +278,73 @@ pcb *processExec(pcb *process){
 }
 
 //DiskRequest
-void diskRequest(pcb *process){
+/*void diskRequest(pcb *process){
 
+}*/
+
+
+
+
+pcb *openFile(char arch[30]){
+    FILE *fp;
+    fp = fopen(arch,"r");
+    pcb *process = startProcess(fp);
+    fclose(fp);
+    return process;
+}   
+
+pcb *startProcess(FILE *fp){
+    char ch;
+    int i = 0;
+    pcb *novoProcesso = (pcb *)malloc(sizeof(pcb));
+    fscanf(fp,"%s\n",novoProcesso->name);
+    fscanf(fp,"%d\n",&novoProcesso->identifier);
+    fscanf(fp,"%d\n",&i);
+    if(i == 0){
+        novoProcesso->isHigh = false;
+    }
+    else{
+        novoProcesso->isHigh = true;
+    }
+    i = 0;
+    fscanf(fp,"%d\n",&novoProcesso->memory);
+    while((ch=fgetc(fp)) != '\n'){
+        if (isspace(ch)==0){
+            novoProcesso->semaphore[i][0]=ch;
+            i++;
+        }
+    }
+    i = 0;
+    char aux[6];
+    fgetc(fp);
+    while (!feof(fp)){
+        fscanf(fp,"%s ",aux);
+        if (strcmp(aux,"exec")==0){
+            novoProcesso->instructionB[i].instructionR = exec;
+        }
+        else if (strcmp(aux,"read")==0){
+            novoProcesso->instructionB[i].instructionR = read;
+        }
+        else if (strcmp(aux,"write")==0){
+            novoProcesso->instructionB[i].instructionR = write;
+        }
+        else if (strcmp(aux,"print")==0){
+            novoProcesso->instructionB[i].instructionR = print;
+        }
+        else{
+            novoProcesso->instructionB[i].instructionR = I_semaphore;
+        }
+        fscanf(fp,"%d\n",&novoProcesso->instructionB[i].timeK);       
+        i++;    
+        //print timek
+
+    }
+    novoProcesso->next = NULL;
+    novoProcesso->instructionB[i].instructionR = end;
+    novoProcesso->pid = pid++;
+    return novoProcesso;
+       
 }
+
 
 #endif

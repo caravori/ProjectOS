@@ -11,14 +11,14 @@ sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
 
-pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal);
+pcb *criar_processo();
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
-int pid;
+
 
 int main (void){
     int op = 100, i=0;
-    int flagH = 0;
-    int flagL = 0;
+    //int flagH = 0;
+    //int flagL = 0;
     pid = 0;
     g_clock  = 0;
     g_memory = 0;
@@ -39,7 +39,7 @@ int main (void){
         }
         switch (op){
         case 1:
-            aux = criar_processo(highPriorityList,lowPriorityList,memoryTotal);
+            aux = criar_processo();
             if (aux->isHigh==true){
                 highPriorityList = aux;
             }
@@ -58,7 +58,7 @@ int main (void){
         printf("\tMEMORY BLOCK %d OCCUPIED FOR PID %d\n",i,memoryTotal[i].pid);
         i++;
     }
-    
+    /*
     while(1){
 
          if(highPriorityList==NULL){
@@ -83,8 +83,8 @@ int main (void){
         if(flagH==1 && flagL==1){
             break;
         }
-        
     }
+        */
 
     //free_memory(highPriorityList,lowPriorityList);
     free(memoryTotal);
@@ -109,7 +109,20 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
+pcb *criar_processo(){
+    char file_name[30];
+    //scan file_name
+    printf("\nDigite o nome do arquivo: ");
+    if(scanf("%s",file_name)!=1){
+        fprintf(stderr,"ERROR AT SCAN");
+    }
+    //open file
+    pcb *process = openFile(file_name);
+    return process;
+}
+
+
+/*pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
     int quantum, memory;
     int isHigh;
     printf("\nPID: ");
@@ -164,4 +177,4 @@ pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memo
         lowPriorityList = memLoadReq(lowPriorityList,memoryTotal,aux->pid);
         return(lowPriorityList);
     }
-}
+}*/
