@@ -71,6 +71,7 @@ typedef struct blocoControleProcesso{
     int pid;
     PCB_STATE states;
     bool isHigh;
+    bool execIO;
     int quantum;
     int memory;
     char semaphore[5][1];
@@ -78,12 +79,12 @@ typedef struct blocoControleProcesso{
     struct blocoControleProcesso *next;
 }pcb;
 
-pcb *newNode(pcb *process, pcb *novo);
+void newNode(pcb *process, pcb *novo);
 pcb *processFinish(pcb *process, int pid);
 pcb *findProcess(pcb *process, int pid);
 void memLoadFinish(int pid, memoryType *memoryTotal);
 pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid);
-pcb *processInterrupt(pcb *process);
+void processInterrupt(pcb *process);
 void round_robin();
 void semaphoreP(int mutex, pcb *process);
 void semaphoreV(int mutex, pcb *process);
@@ -92,16 +93,17 @@ pcb *processExec(pcb *process);
 pcb *openFile(char arch[30]);
 pcb *startProcess(FILE *fp);
 
-pcb *head;
+pcb *headHigh;
+pcb *headLow;
 
-pcb *newNode(pcb *process, pcb *novo){ //é para add no final?
-    head = process;
+
+
+void newNode(pcb *process, pcb *novo){ //é para add no final?
     while(process->next!=NULL){
         printf("%d - ",process->pid);
         process = process->next;
     }
     process->next = novo;
-    return head;
 }
 
 pcb *processFinish(pcb *process, int pid){
@@ -168,29 +170,45 @@ pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid){
     return head;
 }
 
-pcb *processInterrupt(pcb *process){
-    if(process->next==NULL){
-        return process;
-    }
+void processInterrupt(pcb *process){
     pcb *aux = process->next;
     process->next = NULL;
     process->states = BLOCKED;
+    if (process->isHigh){
+        headHigh = aux;
+    }
+    if (process->isHigh==false){
+        headLow = aux;
+    }
+    if (process->execIO){
+        newNode(headLow,process);
+    }
+    else{
+        newNode(headHigh,process);
+    }
     printf("Process PID %d BLOCKED\n",process->pid); 
-    aux = newNode(aux,process);
-    return aux;
 }
 
 
 void round_robin(){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
-    if (head->next==NULL){
+    pcb *process;
+    if (headHigh==NULL&&headLow==NULL){
         sem_wait(&round_sem);
     }
+    if (headHigh!=NULL){
+        process = headHigh;
+    }
+    else{
+        process = headLow;
+    }
     int arrival_time = g_clock;
-    pcb *process = head;
+    
     printf("Arrival_TIME %d \n", arrival_time);
+    process = processExec(process);
     //pegue instruções ate chegar a 1000 ou 2000
+    
     switch (process->isHigh)
     {
     case true:
@@ -199,7 +217,7 @@ void round_robin(){ //por hora o round robin só roda exec! Sera implementado na
             process->quantum -=1000 ;
             printf("PROCESS PID %d -1000 STATE RUNNING\n",process->pid);
             //goto final da lista
-            head = processInterrupt(process);
+            processInterrupt(process);
 
         }
         else{
@@ -207,10 +225,10 @@ void round_robin(){ //por hora o round robin só roda exec! Sera implementado na
             process->quantum = 0;
             printf("PROCESS PID %d FINISH\n",process->pid);
             if(process->next!=NULL){
-                head = process->next;
+                headHigh = process->next;
             }
             else if(process->next==NULL){
-                head = NULL;
+                headHigh = NULL;
             }
             processFinish(process,process->pid);
         }
@@ -222,16 +240,16 @@ void round_robin(){ //por hora o round robin só roda exec! Sera implementado na
             process->quantum = process->quantum-2000;
             printf("PROCESS PID %d -2000 STATE RUNNING\n",process->pid);
             //goto final da lista 
-            head = processInterrupt(process);
+            processInterrupt(process);
 
         }
         else{
             g_clock += process->quantum;
             if(process->next!=NULL){
-                head = process->next;
+                headLow = process->next;
             }
             else if(process->next==NULL){
-                head = NULL;
+                headLow = NULL;
             }
             //process finish
             printf("PROCESS PID %d FINISH\n",process->pid);
@@ -272,8 +290,26 @@ void semaphoreV(int mutex, pcb *process){
 
 //execute process
 pcb *processExec(pcb *process){
+    int i = 0;
     process->states = RUNNING;
-    
+    while(process->quantum<1000){
+        switch(process->instructionB[i].instructionR){
+            case exec:
+                break;
+            case read:
+                break;
+            case write:
+                break;
+            case print:
+                break;
+            case I_semaphore:
+                break;
+            case end:
+                break;
+        }
+        i++;
+
+    }
     return process;
 }
 

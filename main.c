@@ -11,7 +11,7 @@ sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
 
-pcb *criar_processo();
+void criar_processo();
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 
@@ -27,9 +27,6 @@ int main (void){
     pthread_mutex_init(&mutexBuffer, NULL);
     
     memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
-    pcb *aux = NULL;
-    pcb *highPriorityList = NULL;
-    pcb *lowPriorityList = NULL;
     //com as duas listas criadas, crie duas threads para executar as tarefas,
 
     while(op != 0){
@@ -39,13 +36,7 @@ int main (void){
         }
         switch (op){
         case 1:
-            aux = criar_processo();
-            if (aux->isHigh==true){
-                highPriorityList = aux;
-            }
-            else{
-                lowPriorityList = aux;
-            }
+            criar_processo();
             break;
         case 0:
             break;
@@ -109,7 +100,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-pcb *criar_processo(){
+void criar_processo(){
     char file_name[30];
     //scan file_name
     printf("\nDigite o nome do arquivo: ");
@@ -118,7 +109,12 @@ pcb *criar_processo(){
     }
     //open file
     pcb *process = openFile(file_name);
-    return process;
+    if(headHigh==NULL){
+        headHigh = process;
+    }
+    else{
+        newNode(headHigh,process);
+    }
 }
 
 
