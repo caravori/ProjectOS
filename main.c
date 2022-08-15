@@ -23,6 +23,8 @@ int main (void){
     g_clock  = 0;
     g_memory = 0;
     trilhaAtual = 0;
+    headHigh = NULL;
+    headLow = NULL;
     sem_init(&semaphore, 0,1);
     sem_init(&round_sem, 0,1);
     pthread_mutex_init(&mutexBuffer, NULL);
@@ -51,8 +53,8 @@ int main (void){
         i++;
     }
     //create a thread for round robbin
-    pthread_create(&threads[0], NULL, round_robin, NULL);
-    pthread_join(threads[0], NULL);
+   pthread_create(&threads[0], NULL, round_robin, NULL);
+   pthread_join(threads[0], NULL);
     /*
     while(1){
 
