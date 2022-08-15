@@ -28,7 +28,7 @@ int trilhaAtual;
 
 sem_t semaphore;
 sem_t round_sem;
-pthread_mutex_t mutexBuffer;
+pthread_mutex_t lock;
 
 //prototypes of functions
 
@@ -112,7 +112,6 @@ pcb * headLow;
 
 void newNode(pcb * process, pcb * novo) { //é para add no final?
   while (process -> next != NULL) {
-    printf("%d - ", process -> pid);
     process = process -> next;
   }
   process -> next = novo;
@@ -129,7 +128,7 @@ pcb * processFinish(pcb * process, int pid) {
     prev = process;
     process = process -> next;
   }
-  if (process -> next == NULL) {
+  if (process -> next == NULL||prev -> next == NULL) {
     //prev->next = NULL;
     printf("FREE AT PROCESS NULL %d\n", process -> pid);
     free(process);
@@ -181,8 +180,19 @@ pcb * memLoadReq(pcb * process, memoryType * memoryTotal, int pid) {
 
 void processInterrupt(pcb * process) {
   pcb * aux = process->next;
+
   process -> next = NULL;
   process -> states = BLOCKED;
+  if (process->fim == true) {
+    process -> states = TERMINATED;
+    process = processFinish(process, process -> pid);
+    process = NULL;
+    headHigh = NULL;
+    headLow = NULL;
+  }
+  if(process== NULL){
+    return;
+  }
   if (process -> isHigh) {
     headHigh = aux;
   }
@@ -214,22 +224,19 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
   int arrival_time;
   pcb * process;
   while (true) {
-    if (headHigh == NULL){
-        printf("NO HIGH PROCESS\n");
-    }
-    if (headLow == NULL){
-        printf("NO LOW PROCESS\n");
-    }
+    pthread_mutex_lock(&lock);
     if (headHigh == NULL && headLow == NULL) {
-      sem_wait( & round_sem);
+      printf("NO PROCESS\n"); 
+      pthread_mutex_lock(&lock);  
     }
     if (headHigh != NULL) {
+      printf("HIGH PROCESS\n");
       process = headHigh;
     } else {
+      printf("LOW PROCESS\n");
       process = headLow;
     }
     arrival_time = g_clock;
-
     printf("QUANTUM ATUAL %d RR!\n", process -> quantum);
     printf("Arrival_TIME %d \n", arrival_time);
     //pegue instruções ate chegar a 1000 ou 2000
@@ -296,7 +303,7 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
       }
 
     }
-
+    pthread_mutex_unlock(&lock);
   }
 
 }
@@ -305,11 +312,11 @@ void semaphoreP(int mutex, pcb * process) {
 
   if (mutex > 0) {
     mutex--;
-    pthread_mutex_unlock( & mutexBuffer);
+    pthread_mutex_unlock( & lock);
     //unlocked
   } else {
 
-    pthread_mutex_lock( & mutexBuffer);
+    pthread_mutex_lock( & lock);
     process -> states = BLOCKED;
     //lock;
 

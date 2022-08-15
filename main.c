@@ -9,7 +9,7 @@ pthread_t threads[2];
 
 sem_t semaphore;
 sem_t round_sem;
-pthread_mutex_t mutexBuffer;
+
 
 void criar_processo(memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
@@ -27,7 +27,8 @@ int main (void){
     headLow = NULL;
     sem_init(&semaphore, 0,1);
     sem_init(&round_sem, 0,1);
-    pthread_mutex_init(&mutexBuffer, NULL);
+    pthread_mutex_init(&lock, NULL);
+
     
     memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
     //com as duas listas criadas, crie duas threads para executar as tarefas,
@@ -122,7 +123,7 @@ void criar_processo(memoryType *memoryTotal){
     else{
         newNode(headHigh,process);
     }
-    sem_post(&round_sem);
+    pthread_mutex_unlock(&lock);
 }
 
 
