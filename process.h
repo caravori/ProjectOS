@@ -290,15 +290,44 @@ void semaphoreV(int mutex, pcb *process){
 
 //execute process
 pcb *processExec(pcb *process){
-    int i = 0;
+    int i = 0,time;
     process->states = RUNNING;
-    while(process->quantum<1000){
+    process->execIO = false;
+    if (process->isHigh){
+        time = 1000;
+    }
+    else{
+        time = 2000;
+    }
+    while(process->quantum<time){
         switch(process->instructionB[i].instructionR){
             case exec:
+                    if (process->isHigh){
+                        if (process->instructionB[i].timeK>=1000){
+                            process->quantum +=1000;
+                            process->instructionB[i].timeK -=1000;     
+                        }
+                        else{
+                            process->quantum += process->instructionB[i].timeK;
+                            process->instructionB[i].timeK = 0;
+                        }
+                    }
+                    else {
+                        if (process->instructionB[i].timeK>=2000){
+                            process->quantum +=2000;
+                            process->instructionB[i].timeK -=2000;     
+                        }
+                        else{
+                            process->quantum += process->instructionB[i].timeK;
+                            process->instructionB[i].timeK = 0;
+                        }
+                    }
                 break;
             case read:
+                    process->execIO = true;
                 break;
             case write:
+                    process->execIO = true;
                 break;
             case print:
                 break;
