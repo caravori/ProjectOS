@@ -56,35 +56,6 @@ int main (void){
     //create a thread for round robbin
    pthread_create(&threads[0], NULL, round_robin, NULL);
    pthread_join(threads[0], NULL);
-    /*
-    while(1){
-
-         if(highPriorityList==NULL){
-            flagH = 1;
-        }
-        else if(flagH!=1){
-            highPriorityList = round_robin(highPriorityList);
-        }
-        if(highPriorityList==NULL){
-                flagH = 1;
-        }
-        else if(flagH!=1){
-            highPriorityList = round_robin(highPriorityList);
-        }
-        if(lowPriorityList==NULL){
-                flagL = 1;
-        }
-        else if(flagL!=1){
-            lowPriorityList = round_robin(lowPriorityList);
-        }
-        
-        if(flagH==1 && flagL==1){
-            break;
-        }
-    }
-        */
-
-    //free_memory(highPriorityList,lowPriorityList);
     free(memoryTotal);
     
     return 0;
