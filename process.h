@@ -333,9 +333,15 @@ pcb *startProcess(FILE *fp){
     char ch;
     int i = 0;
     pcb *novoProcesso = (pcb *)malloc(sizeof(pcb));
-    fscanf(fp,"%s\n",novoProcesso->name);
-    fscanf(fp,"%d\n",&novoProcesso->identifier);
-    fscanf(fp,"%d\n",&i);
+    if(fscanf(fp,"%s\n",novoProcesso->name)==0){
+        fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+    }
+    if(fscanf(fp,"%d\n",&novoProcesso->identifier)==0){
+        fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+    }
+    if(fscanf(fp,"%d\n",&i)==0){
+        fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+    }
     if(i == 0){
         novoProcesso->isHigh = false;
     }
@@ -343,7 +349,9 @@ pcb *startProcess(FILE *fp){
         novoProcesso->isHigh = true;
     }
     i = 0;
-    fscanf(fp,"%d\n",&novoProcesso->memory);
+    if(fscanf(fp,"%d\n",&novoProcesso->memory)==0){
+        fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+    }
     while((ch=fgetc(fp)) != '\n'){
         if (isspace(ch)==0){
             novoProcesso->semaphore[i][0]=ch;
@@ -354,7 +362,9 @@ pcb *startProcess(FILE *fp){
     char aux[6];
     fgetc(fp);
     while (!feof(fp)){
-        fscanf(fp,"%s ",aux);
+        if(fscanf(fp,"%s ",aux)==0){
+            fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+        }
         if (strcmp(aux,"exec")==0){
             novoProcesso->instructionB[i].instructionR = exec;
         }
@@ -370,7 +380,9 @@ pcb *startProcess(FILE *fp){
         else{
             novoProcesso->instructionB[i].instructionR = I_semaphore;
         }
-        fscanf(fp,"%d\n",&novoProcesso->instructionB[i].timeK);       
+        if(fscanf(fp,"%d\n",&novoProcesso->instructionB[i].timeK)){
+            fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
+        }       
         i++;    
         //print timek
 
