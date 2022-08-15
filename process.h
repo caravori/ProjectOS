@@ -19,6 +19,7 @@
 unsigned int g_clock;
 int g_memory;
 int pid;
+int trilhaAtual;
 
 sem_t semaphore;
 sem_t round_sem;
@@ -72,6 +73,8 @@ typedef struct blocoControleProcesso{
     PCB_STATE states;
     bool isHigh;
     bool execIO;
+    bool fim;
+    int instrucao;
     int quantum;
     int memory;
     char semaphore[5][1];
@@ -85,13 +88,14 @@ pcb *findProcess(pcb *process, int pid);
 void memLoadFinish(int pid, memoryType *memoryTotal);
 pcb *memLoadReq(pcb *process, memoryType *memoryTotal,int pid);
 void processInterrupt(pcb *process);
-void round_robin();
+void *round_robin();
 void semaphoreP(int mutex, pcb *process);
 void semaphoreV(int mutex, pcb *process);
 pcb *processCreate(pcb *NewProcess);
 pcb *processExec(pcb *process);
 pcb *openFile(char arch[30]);
 pcb *startProcess(FILE *fp);
+int diskRequest(int trilha);
 
 pcb *headHigh;
 pcb *headLow;
@@ -190,75 +194,81 @@ void processInterrupt(pcb *process){
 }
 
 
-void round_robin(){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
+void *round_robin(){ //por hora o round robin só roda exec! Sera implementado na próxima etapa!
     // tamanho maximo de tempo = 1000 ou 2000 (depende da prioridade)
     //semaforo
     pcb *process;
-    if (headHigh==NULL&&headLow==NULL){
-        sem_wait(&round_sem);
-    }
-    if (headHigh!=NULL){
-        process = headHigh;
-    }
-    else{
-        process = headLow;
-    }
-    int arrival_time = g_clock;
-    
-    printf("Arrival_TIME %d \n", arrival_time);
-    process = processExec(process);
-    //pegue instruções ate chegar a 1000 ou 2000
-    
-    switch (process->isHigh)
-    {
-    case true:
-        if (process->quantum>1000){
-            g_clock +=1000;
-            process->quantum -=1000 ;
-            printf("PROCESS PID %d -1000 STATE RUNNING\n",process->pid);
-            //goto final da lista
-            processInterrupt(process);
+    while(true){
 
+        if (headHigh==NULL&&headLow==NULL){
+            sem_wait(&round_sem);
+        }
+        if (headHigh!=NULL){
+            process = headHigh;
         }
         else{
-            g_clock += process->quantum;
-            process->quantum = 0;
-            printf("PROCESS PID %d FINISH\n",process->pid);
-            if(process->next!=NULL){
-                headHigh = process->next;
-            }
-            else if(process->next==NULL){
-                headHigh = NULL;
-            }
-            processFinish(process,process->pid);
+            process = headLow;
         }
-        break;
-    
-    case false:
-        if (process->quantum>2000){
-            g_clock +=2000;
-            process->quantum = process->quantum-2000;
-            printf("PROCESS PID %d -2000 STATE RUNNING\n",process->pid);
-            //goto final da lista 
-            processInterrupt(process);
+        int arrival_time = g_clock;
 
+        printf("Arrival_TIME %d \n", arrival_time);
+        //pegue instruções ate chegar a 1000 ou 2000
+        process = processExec(process);
+
+        switch (process->isHigh)
+        {
+        case true:
+            if (process->quantum>1000){
+                g_clock +=1000;
+                process->quantum -=1000 ;
+                printf("PROCESS PID %d -1000 STATE RUNNING\n",process->pid);
+                //goto final da lista
+                processInterrupt(process);
+
+            }
+            else{
+                g_clock += process->quantum;
+                process->quantum = 0;
+                printf("PROCESS PID %d FINISH\n",process->pid);
+                if(process->next!=NULL){
+                    headHigh = process->next;
+                }
+                else if(process->next==NULL){
+                    headHigh = NULL;
+                }
+               processInterrupt(process);
+            }
+            break;
+
+        case false:
+            if (process->quantum>2000){
+                g_clock +=2000;
+                process->quantum = process->quantum-2000;
+                printf("PROCESS PID %d -2000 STATE RUNNING\n",process->pid);
+                //goto final da lista 
+                processInterrupt(process);
+
+            }
+            else{
+                g_clock += process->quantum;
+                if(process->next!=NULL){
+                    headLow = process->next;
+                }
+                else if(process->next==NULL){
+                    headLow = NULL;
+                }
+                //process finish
+                printf("PROCESS PID %d FINISH\n",process->pid);
+                processInterrupt(process);
+            }
+            break;
         }
-        else{
-            g_clock += process->quantum;
-            if(process->next!=NULL){
-                headLow = process->next;
-            }
-            else if(process->next==NULL){
-                headLow = NULL;
-            }
-            //process finish
+        if (process->fim==true&&process->quantum==0){
             printf("PROCESS PID %d FINISH\n",process->pid);
             processFinish(process,process->pid);
         }
-        break;
-    }
-    sem_post(&round_sem);
     
+    }
 }
 
 
@@ -290,9 +300,12 @@ void semaphoreV(int mutex, pcb *process){
 
 //execute process
 pcb *processExec(pcb *process){
-    int i = 0,time;
+    int i,time;
+    int quantumDisk;
     process->states = RUNNING;
     process->execIO = false;
+    i = process->instrucao;
+   
     if (process->isHigh){
         time = 1000;
     }
@@ -300,6 +313,10 @@ pcb *processExec(pcb *process){
         time = 2000;
     }
     while(process->quantum<time){
+        if (process->fim){
+            break;
+        }
+        printf("PROCESS PID %d - %d STATE RUNNING\n",process->pid,process->instructionB[i].instructionR);
         switch(process->instructionB[i].instructionR){
             case exec:
                     if (process->isHigh){
@@ -325,27 +342,71 @@ pcb *processExec(pcb *process){
                 break;
             case read:
                     process->execIO = true;
+                    process->quantum += 5000;
+                    quantumDisk = diskRequest(process->instructionB[i].timeK);
+                    process->quantum += quantumDisk;
+                    process->instructionB[i].timeK = 0;
+
                 break;
             case write:
                     process->execIO = true;
+                    process->quantum += 5000;
+                    quantumDisk = diskRequest(process->instructionB[i].timeK);
+                    process->quantum += quantumDisk;
+                    process->instructionB[i].timeK = 0;
                 break;
             case print:
+                    if (process->isHigh){
+                        if (process->instructionB[i].timeK>=1000){
+                            process->quantum +=1000;
+                            process->instructionB[i].timeK -=1000;     
+                        }
+                        else{
+                            process->quantum += process->instructionB[i].timeK;
+                            process->instructionB[i].timeK = 0;
+                        }
+                    }
+                    else {
+                        if (process->instructionB[i].timeK>=2000){
+                            process->quantum +=2000;
+                            process->instructionB[i].timeK -=2000;     
+                        }
+                        else{
+                            process->quantum += process->instructionB[i].timeK;
+                            process->instructionB[i].timeK = 0;
+                        }
+                    }
                 break;
             case I_semaphore:
+                    process->quantum +=200;
+                    process->instructionB[i].timeK = 0;
                 break;
             case end:
+                    process->fim = true;
                 break;
         }
         i++;
-
+        process->instrucao = i;
     }
     return process;
 }
 
 //DiskRequest
-/*void diskRequest(pcb *process){
-
-}*/
+int diskRequest(int trilha){
+    int custo=0;
+    //cada trilha custa 100
+    if (trilhaAtual<trilha){
+        custo = trilha-trilhaAtual;
+        custo = custo*100;
+        trilhaAtual = trilha;
+    }
+    else{
+        custo = trilhaAtual-trilha;
+        custo = custo*100;
+        trilhaAtual = trilha;
+    }
+    return custo;
+}
 
 
 
@@ -421,6 +482,7 @@ pcb *startProcess(FILE *fp){
     }
     novoProcesso->next = NULL;
     novoProcesso->instructionB[i].instructionR = end;
+    novoProcesso->instrucao = 0;
     novoProcesso->pid = pid++;
     return novoProcesso;
        

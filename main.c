@@ -11,7 +11,7 @@ sem_t semaphore;
 sem_t round_sem;
 pthread_mutex_t mutexBuffer;
 
-void criar_processo();
+void criar_processo(memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 
@@ -22,6 +22,7 @@ int main (void){
     pid = 0;
     g_clock  = 0;
     g_memory = 0;
+    trilhaAtual = 0;
     sem_init(&semaphore, 0,1);
     sem_init(&round_sem, 0,1);
     pthread_mutex_init(&mutexBuffer, NULL);
@@ -36,7 +37,7 @@ int main (void){
         }
         switch (op){
         case 1:
-            criar_processo();
+            criar_processo(memoryTotal);
             break;
         case 0:
             break;
@@ -49,6 +50,9 @@ int main (void){
         printf("\tMEMORY BLOCK %d OCCUPIED FOR PID %d\n",i,memoryTotal[i].pid);
         i++;
     }
+    //create a thread for round robbin
+    pthread_create(&threads[0], NULL, round_robin, NULL);
+    pthread_join(threads[0], NULL);
     /*
     while(1){
 
@@ -100,7 +104,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-void criar_processo(){
+void criar_processo(memoryType *memoryTotal){
     char file_name[30];
     //scan file_name
     printf("\nDigite o nome do arquivo: ");
@@ -109,12 +113,14 @@ void criar_processo(){
     }
     //open file
     pcb *process = openFile(file_name);
+    process = memLoadReq(process,memoryTotal,process->pid);
     if(headHigh==NULL){
         headHigh = process;
     }
     else{
         newNode(headHigh,process);
     }
+    sem_post(&round_sem);
 }
 
 
