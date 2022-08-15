@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <locale.h>
+#include <stdio.h>
 #include <pthread.h>
 #include <semaphore.h>
 #include <string.h>
@@ -16,6 +18,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 
 
 int main (void){
+    setlocale(LC_ALL, "Portuguese");
     int op = 100, i=0;
     //int flagH = 0;
     //int flagL = 0;
@@ -34,7 +37,7 @@ int main (void){
     //com as duas listas criadas, crie duas threads para executar as tarefas,
 
     while(op != 0){
-        printf("\t\tMenu\n\t1-Criar Processo\t0-Iniciar Simulacao\nop: ");
+        printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n\nDigite uma das opções acima: ");
         if(scanf("%d",&op)!=1){
             fprintf(stderr,"ERROR AT SCAN");
         }
@@ -49,10 +52,12 @@ int main (void){
             break;
         }
     }
+    printf("\n\n");
     while (i < g_memory){
-        printf("\tMEMORY BLOCK %d OCCUPIED FOR PID %d\n",i,memoryTotal[i].pid);
+        printf("\tBloco de Memória %d ocupado para o PID %d\n",i,memoryTotal[i].pid);
         i++;
     }
+    printf("\n\n");
     //create a thread for round robbin
    pthread_create(&threads[0], NULL, round_robin, NULL);
    pthread_join(threads[0], NULL);
@@ -87,6 +92,12 @@ void criar_processo(memoryType *memoryTotal){
     }
     //open file
     pcb *process = openFile(file_name);
+    
+    if(process == NULL){
+        printf("\nArquivo não encontrado");
+        exit(0);
+    }
+
     process = memLoadReq(process,memoryTotal,process->pid);
     if(headHigh==NULL){
         headHigh = process;

@@ -130,12 +130,12 @@ pcb * processFinish(pcb * process, int pid) {
   }
   if (process -> next == NULL||prev -> next == NULL) {
     //prev->next = NULL;
-    printf("FREE AT PROCESS NULL %d\n", process -> pid);
+    printf("\n\tFREE AT PROCESS NULL %d\n", process -> pid);
     free(process);
     return prev;
   } else {
     prev -> next = process -> next;
-    printf("FREE AT PROCESS %d\n", process -> pid);
+    printf("\n\tFREE AT PROCESS %d\n", process -> pid);
     free(process);
     return prev;
   }
@@ -200,7 +200,7 @@ void processInterrupt(pcb * process) {
     headLow = aux;
   }
   if (process -> execIO) {
-    printf("Process transfering to HEADLOW\n");
+    printf("\n\tTransferindo processo para HEADLOW (lista de baixa prioridade)\n");
     process -> isHigh = false;
     if(headLow == NULL) {
       headLow = process;
@@ -208,14 +208,14 @@ void processInterrupt(pcb * process) {
       newNode(headLow, process);
     }
   } else {
-    printf("Process transfering to HEADHIGH\n");
+    printf("\n\tTransferindo processo para HEADHIGH (lista de alta prioridade)\n");
     if(headHigh == NULL) {
       headHigh = process;
     } else {
       newNode(headHigh, process);
     }
   }
-  printf("Process PID %d BLOCKED\n", process -> pid);
+  printf("\n\tProcesso de PID %d, estado: BLOCKED (Bloqueado)\n", process -> pid);
 }
 
 void * round_robin() { //por hora o round robin só roda exec! Sera implementado na próxima etapa!
@@ -226,19 +226,20 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
   while (true) {
     pthread_mutex_lock(&lock);
     if (headHigh == NULL && headLow == NULL) {
-      printf("NO PROCESS\n"); 
+      printf("\n\tNão existem mais processos!\n"); 
       pthread_mutex_lock(&lock);  
     }
     if (headHigh != NULL) {
-      printf("HIGH PROCESS\n");
+      printf("\n\tProcesso de Alta Prioridade!\n");
       process = headHigh;
     } else {
-      printf("LOW PROCESS\n");
+      printf("\n\tProcesso de Baixa Prioridade!\n");
       process = headLow;
     }
     arrival_time = g_clock;
-    printf("QUANTUM ATUAL %d RR!\n", process -> quantum);
-    printf("Arrival_TIME %d \n", arrival_time);
+    printf("\n\n--------------------------------------------------\n\n");
+    printf("\tQuantum time atual %d RR!\n", process -> quantum);
+    printf("\tArrival time (tempo de chegada): %d \n", arrival_time);
     //pegue instruções ate chegar a 1000 ou 2000
     if (process -> isHigh) {
       if (process -> quantum < 1000 && !process -> fim) {
@@ -251,39 +252,38 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
     }
 
     if (process -> fim == true && process -> quantum == 0) {
-      printf("PROCESS PID %d FINISH\n", process -> pid);
+      printf("\tProcesso de PID %d Terminado!\n", process -> pid);
       process = processFinish(process, process -> pid);
     } else {
       switch (process -> isHigh) {
       case true:
-        printf("Process PID %d HIGH\n", process -> pid);
+        printf("\tProcesso de PID %d Alta prioridade\n", process -> pid);
         if (process -> quantum > 1000) {
           g_clock += 1000;
           process -> quantum -= 1000;
-          printf("PROCESS PID %d -1000 STATE RUNNING\n", process -> pid);
+          printf("\tProcesso de PID %d -1000 STATE RUNNING\n", process -> pid);
           //goto final da lista
           processInterrupt(process);
 
         } else {
           g_clock += process -> quantum;
           process -> quantum = 0;
-          printf("PROCESS PID %d RUNNING HIGH\n", process -> pid);
+          printf("\tProcesso de PID %d executando em Alta Prioridade!\n", process -> pid);
           if (process -> next != NULL) {
             headHigh = process -> next;
           } else if (process -> next == NULL) {
             headHigh = NULL;
-            printf("HEAD HIGH NULL\n");
           }
           processInterrupt(process);
         }
         break;
 
       case false:
-        printf("Process PID %d LOW\n", process -> pid);
+        printf("\tProcesso de PID %d LOW\n", process -> pid);
         if (process -> quantum > 2000) {
           g_clock += 2000;
           process -> quantum = process -> quantum - 2000;
-          printf("PROCESS PID %d -2000 STATE RUNNING\n", process -> pid);
+          printf("\tProcesso de PID %d -2000 STATE RUNNING\n", process -> pid);
           //goto final da lista 
           processInterrupt(process);
 
@@ -296,7 +296,7 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
             headLow = NULL;
           }
           //process finish
-          printf("PROCESS PID %d RUNNING %d\n", process -> pid, process -> quantum);
+          printf("\tProcesso de PID %d RUNNING %d\n", process -> pid, process -> quantum);
           processInterrupt(process);
         }
         break;
@@ -346,14 +346,14 @@ pcb * processExec(pcb * process) {
     time = 2000;
   }
   while (process -> quantum < time) {
-    printf("QUANTUM ATUAL %d\n", process -> quantum);
+    printf("\n\tQuantum time atual %d\n", process -> quantum);
     if (process -> fim) {
       break;
     }
-    printf("PROCESS PID %d - %d STATE RUNNING\n", process -> pid, process -> instructionB[i].instructionR);
+    printf("\tProcesso de PID %d - Instrução: %d, estado: Executando (Running)\n", process -> pid, process -> instructionB[i].instructionR);
     switch (process -> instructionB[i].instructionR) {
     case exec:
-      printf("PROCESS PID %d - %d STATE EXEC\n", process -> pid, process -> instructionB[i].instructionR);
+      printf("\tProcesso de PID %d - Instrução: %d - EXEC\n", process -> pid, process -> instructionB[i].instructionR);
       if (process -> isHigh) {
         if (process -> instructionB[i].timeK >= 1000) {
           process -> quantum += 1000;
@@ -373,7 +373,7 @@ pcb * processExec(pcb * process) {
       }
       break;
     case read:
-      printf("PROCESS PID %d - %d STATE READ\n", process -> pid, process -> instructionB[i].instructionR);
+      printf("\tProcesso de PID %d - Instrução: %d - READ\n", process -> pid, process -> instructionB[i].instructionR);
       process -> execIO = true;
       process -> quantum += 5000;
       quantumDisk = diskRequest(process -> instructionB[i].timeK);
@@ -382,7 +382,7 @@ pcb * processExec(pcb * process) {
 
       break;
     case write:
-      printf("PROCESS PID %d - %d STATE WRITE\n", process -> pid, process -> instructionB[i].instructionR);
+      printf("\tProcesso de PID %d - Instrução: %d - WRITE\n", process -> pid, process -> instructionB[i].instructionR);
       process -> execIO = true;
       process -> quantum += 5000;
       quantumDisk = diskRequest(process -> instructionB[i].timeK);
@@ -390,7 +390,7 @@ pcb * processExec(pcb * process) {
       process -> instructionB[i].timeK = 0;
       break;
     case print:
-      printf("PROCESS PID %d - %d STATE PRINT\n", process -> pid, process -> instructionB[i].instructionR);
+      printf("\tProcesso de PID %d - Instrução: %d - PRINT\n", process -> pid, process -> instructionB[i].instructionR);
       if (process -> isHigh) {
         if (process -> instructionB[i].timeK >= 1000) {
           process -> quantum += 1000;
@@ -410,11 +410,12 @@ pcb * processExec(pcb * process) {
       }
       break;
     case I_semaphore:
-      printf("PROCESS PID %d - %d STATE SEMAPHORE\n", process -> pid, process -> instructionB[i].instructionR);
+      printf("\tProcesso de PID %d - Instrução: %d - SEMAPHORE\n", process -> pid, process -> instructionB[i].instructionR);
       process -> quantum += 200;
       process -> instructionB[i].timeK = 0;
       break;
     case end:
+      printf("\tProcesso de PID %d - Instrução: %d - END\n", process -> pid, process -> instructionB[i].instructionR);
       process -> fim = true;
       break;
     }
@@ -455,11 +456,11 @@ pcb * startProcess(FILE * fp) {
   if (fscanf(fp, "%s\n", novoProcesso -> name) == 0) {
     fprintf(stderr, "ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
   }
-  printf("PROCESS NAME %s\n", novoProcesso -> name);
+  printf("PROCESS NAME: %s\n", novoProcesso -> name);
   if (fscanf(fp, "%d\n", & novoProcesso -> identifier) == 0) {
     fprintf(stderr, "ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
   }
-  printf("PROCESS IDENTIFIER %d\n", novoProcesso -> identifier);
+  printf("PROCESS IDENTIFIER: %d\n", novoProcesso -> identifier);
   if (fscanf(fp, "%d\n", & i) == 0) {
     fprintf(stderr, "ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
   }
@@ -472,7 +473,7 @@ pcb * startProcess(FILE * fp) {
   if (fscanf(fp, "%d\n", & novoProcesso -> memory) == 0) {
     fprintf(stderr, "ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
   }
-  printf("PROCESS MEMORY %d\n", novoProcesso -> memory);
+  printf("PROCESS MEMORY: %d\n\n", novoProcesso -> memory);
   while ((ch = fgetc(fp)) != '\n') {
     if (isspace(ch) == 0) {
       novoProcesso -> semaphore[i][0] = ch;
@@ -486,7 +487,6 @@ pcb * startProcess(FILE * fp) {
     if (fscanf(fp, "%s ", aux) == 0) {
       fprintf(stderr, "ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
     }
-    printf("%s\n", aux);
     if (strcmp(aux, "exec") == 0) {
       novoProcesso -> instructionB[i].instructionR = exec;
     } else if (strcmp(aux, "read") == 0) {
