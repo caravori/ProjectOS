@@ -365,9 +365,11 @@ pcb *startProcess(FILE *fp){
     if(fscanf(fp,"%s\n",novoProcesso->name)==0){
         fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
     }
+    printf("PROCESS NAME %s\n",novoProcesso->name);
     if(fscanf(fp,"%d\n",&novoProcesso->identifier)==0){
         fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
     }
+    printf("PROCESS IDENTIFIER %d\n",novoProcesso->identifier);
     if(fscanf(fp,"%d\n",&i)==0){
         fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
     }
@@ -381,6 +383,7 @@ pcb *startProcess(FILE *fp){
     if(fscanf(fp,"%d\n",&novoProcesso->memory)==0){
         fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
     }
+    printf("PROCESS MEMORY %d\n",novoProcesso->memory);
     while((ch=fgetc(fp)) != '\n'){
         if (isspace(ch)==0){
             novoProcesso->semaphore[i][0]=ch;
@@ -394,6 +397,7 @@ pcb *startProcess(FILE *fp){
         if(fscanf(fp,"%s ",aux)==0){
             fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
         }
+        printf("%s\n",aux);
         if (strcmp(aux,"exec")==0){
             novoProcesso->instructionB[i].instructionR = exec;
         }
@@ -409,12 +413,11 @@ pcb *startProcess(FILE *fp){
         else{
             novoProcesso->instructionB[i].instructionR = I_semaphore;
         }
-        if(fscanf(fp,"%d\n",&novoProcesso->instructionB[i].timeK)){
-            fprintf(stderr,"ERROR AT SCANNING FILE <WRONG OR MISSING FILE>");
-        }       
-        i++;    
-        //print timek
-
+        if(fscanf(fp,"%d\n",&novoProcesso->instructionB[i].timeK)==0){
+            continue;
+        }
+        printf("%d\n",novoProcesso->instructionB[i].timeK);  
+        i++;
     }
     novoProcesso->next = NULL;
     novoProcesso->instructionB[i].instructionR = end;
