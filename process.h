@@ -226,7 +226,11 @@ void * round_robin() { //por hora o round robin só roda exec! Sera implementado
   while (true) {
     pthread_mutex_lock(&lock);
     if (headHigh == NULL && headLow == NULL) {
-      printf("\n\tNão existem mais processos!\n"); 
+      if(pid!=0){
+        printf("\n\tNão existem mais processos!\n"); 
+        printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n2-Sair\nDigite uma das opções acima: ");
+
+      }
       pthread_mutex_lock(&lock);  
     }
     if (headHigh != NULL) {

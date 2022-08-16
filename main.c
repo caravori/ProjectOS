@@ -15,14 +15,11 @@ sem_t round_sem;
 
 void criar_processo(memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
-void menu(memoryType *memoryTotal);
+void *menu();
 
 
-int main (void){
+int main (){
     setlocale(LC_ALL, "Portuguese");
-    int op = 100, i=0;
-    //int flagH = 0;
-    //int flagL = 0;
     pid = 0;
     g_clock  = 0;
     g_memory = 0;
@@ -34,17 +31,21 @@ int main (void){
     pthread_mutex_init(&lock, NULL);
 
     
-    memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
-    //com as duas listas criadas, crie duas threads para executar as tarefas,
+    //create a thread for the menu
+    pthread_create(&threads[1], NULL, &menu, NULL);
+    pthread_create(&threads[0], NULL, round_robin, NULL);
 
-    menu(memoryTotal);
+
+    //create a thread for round robbin
+    pthread_join(threads[1], NULL);
+    pthread_join(threads[0], NULL);
     
-    free(memoryTotal);
     
     return 0;
 }
 
-void menu(memoryType *memoryTotal){
+void *menu(void){
+    memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
     int op = 100, i = 0;
     while(op != 2){
         printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n2-Sair\nDigite uma das opções acima: ");
@@ -61,9 +62,7 @@ void menu(memoryType *memoryTotal){
                     i++;
                 }
                 printf("\n\n");
-                //create a thread for round robbin
-                pthread_create(&threads[0], NULL, round_robin, NULL);
-                pthread_join(threads[0], NULL);
+                
             break;
         case 2:
             break;
@@ -72,7 +71,8 @@ void menu(memoryType *memoryTotal){
             break;
         }
     }
-
+    free(memoryTotal);
+    return NULL;
 }
 
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
