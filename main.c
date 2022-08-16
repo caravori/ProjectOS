@@ -11,14 +11,16 @@ pthread_t threads[2];
 
 sem_t semaphore;
 sem_t round_sem;
+char  PROCESS_ARG[100][100];
+int  PROCESS_ARG_COUNT;
 
 
-void criar_processo(memoryType *memoryTotal);
+void criar_processo(memoryType *memoryTotal,char file_name[100]);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
 void *menu();
 
 
-int main (){
+int main (int argc, char *argv[]){
     setlocale(LC_ALL, "Portuguese");
     pid = 0;
     g_clock  = 0;
@@ -26,9 +28,17 @@ int main (){
     trilhaAtual = 0;
     headHigh = NULL;
     headLow = NULL;
+    strcpy(PROCESS_ARG[0], "NULL");
+    PROCESS_ARG_COUNT = 0;
     sem_init(&semaphore, 0,1);
     sem_init(&round_sem, 0,1);
     pthread_mutex_init(&lock, NULL);
+
+    //transfer arguments to PROCESS_ARG
+    for(int i = 1; i < argc; i++){
+        strcpy(PROCESS_ARG[i-1], argv[i]);
+        PROCESS_ARG_COUNT++;
+    }
 
     
     //create a thread for the menu
@@ -47,6 +57,12 @@ int main (){
 void *menu(void){
     memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
     int op = 100, i = 0;
+    char file_name[100];
+    if (strcmp(PROCESS_ARG[0], "NULL") != 0){
+        for(i = 0; i < PROCESS_ARG_COUNT; i++){
+            criar_processo(memoryTotal,PROCESS_ARG[i]);
+        }
+    }
     while(op != 2){
         printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n2-Sair\nDigite uma das opções acima: ");
         if(scanf("%d",&op)!=1){
@@ -54,7 +70,11 @@ void *menu(void){
         }
         switch (op){
         case 1:
-            criar_processo(memoryTotal);
+            printf("\nDigite o nome do arquivo: ");
+            if(scanf("%s",file_name)!=1){
+            fprintf(stderr,"ERROR AT SCAN");
+            }
+            criar_processo(memoryTotal,file_name);
             break;
         case 0: printf("\n\n");
                 while (i < g_memory){
@@ -65,6 +85,8 @@ void *menu(void){
                 
             break;
         case 2:
+            free(memoryTotal);
+            exit(0);
             break;
         default:
             printf("\nENTRADA INVÁLIDA !!\n");
@@ -91,13 +113,7 @@ void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     sem_close(&round_sem);
 }
 
-void criar_processo(memoryType *memoryTotal){
-    char file_name[30];
-    //scan file_name
-    printf("\nDigite o nome do arquivo: ");
-    if(scanf("%s",file_name)!=1){
-        fprintf(stderr,"ERROR AT SCAN");
-    }
+void criar_processo(memoryType *memoryTotal,char file_name[100]){
     //open file
     pcb *process = openFile(file_name);
     
@@ -115,61 +131,3 @@ void criar_processo(memoryType *memoryTotal){
     }
     pthread_mutex_unlock(&lock);
 }
-
-
-/*pcb *criar_processo(pcb *highPriorityList,pcb *lowPriorityList, memoryType *memoryTotal){
-    int quantum, memory;
-    int isHigh;
-    printf("\nPID: ");
-    if (scanf("%d",&pid)!=1){
-        fprintf(stderr,"ERROR AT SCAN");
-    }
-    setbuf(stdin,NULL);
-    printf("\nQuantum time:");
-
-    if(scanf("%d", &quantum)!=1){
-        fprintf(stderr,"ERROR AT SCAN");
-    }
-    setbuf(stdin,NULL);
-    printf("\neh alta prioridade? (1 or 0): ");
-    if (scanf("%d", &isHigh)!=1){
-        fprintf(stderr,"ERROR AT SCAN");
-    }
-    setbuf(stdin,NULL);
-    
-    do{
-    printf("\nQuantidade de memoria em Kb (multiplo de 4): ");
-    if (scanf("%d", &memory)!=1){
-        fprintf(stderr,"ERROR AT SCAN");
-    }
-    setbuf(stdin,NULL);
-    }while((memory%4&&memory<4) != 0);
-    
-    pcb *aux = processCreate(pid,quantum,isHigh,memory);
-    
-    if (aux->isHigh==true){
-        if(highPriorityList==NULL){
-            highPriorityList = aux;
-            printf("\n--Primeiro Nó de alta prioridade CRIADO COM SUCESSO!--\n");
-        }
-        else{
-           highPriorityList = newNode(highPriorityList,aux);
-           printf("\n--Nó de alta prioridade adicionado com SUCESSO!--\n");
-        }
-        highPriorityList = memLoadReq(highPriorityList,memoryTotal,aux->pid);
-        return(highPriorityList);
-    }
-    else{
-        if(lowPriorityList==NULL){
-            lowPriorityList = aux;
-            printf("\n--Primeiro Nó de baixa prioridade CRIADO COM SUCESSO!--\n");
-        }
-        else{
-            lowPriorityList = newNode(lowPriorityList,aux);
-            printf("\n--Nó de baixa prioridade adicionado com SUCESSO!--\n");
-
-        }
-        lowPriorityList = memLoadReq(lowPriorityList,memoryTotal,aux->pid);
-        return(lowPriorityList);
-    }
-}*/
