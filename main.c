@@ -15,6 +15,7 @@ sem_t round_sem;
 
 void criar_processo(memoryType *memoryTotal);
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList);
+void menu(memoryType *memoryTotal);
 
 
 int main (void){
@@ -36,8 +37,17 @@ int main (void){
     memoryType *memoryTotal = malloc(sizeof(memoryType)*MAX_MEMORY);
     //com as duas listas criadas, crie duas threads para executar as tarefas,
 
-    while(op != 0){
-        printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n\nDigite uma das opções acima: ");
+    menu(memoryTotal);
+    
+    free(memoryTotal);
+    
+    return 0;
+}
+
+void menu(memoryType *memoryTotal){
+    int op = 100, i = 0;
+    while(op != 2){
+        printf("\n---------------------------------------------\n\t\tMenu\n\n1-Criar Processo\n0-Iniciar Simulacao\n2-Sair\nDigite uma das opções acima: ");
         if(scanf("%d",&op)!=1){
             fprintf(stderr,"ERROR AT SCAN");
         }
@@ -45,27 +55,25 @@ int main (void){
         case 1:
             criar_processo(memoryTotal);
             break;
-        case 0:
+        case 0: printf("\n\n");
+                while (i < g_memory){
+                    printf("\tBloco de Memória %d ocupado para o PID %d\n",i,memoryTotal[i].pid);
+                    i++;
+                }
+                printf("\n\n");
+                //create a thread for round robbin
+                pthread_create(&threads[0], NULL, round_robin, NULL);
+                pthread_join(threads[0], NULL);
+            break;
+        case 2:
             break;
         default:
             printf("\nENTRADA INVÁLIDA !!\n");
             break;
         }
     }
-    printf("\n\n");
-    while (i < g_memory){
-        printf("\tBloco de Memória %d ocupado para o PID %d\n",i,memoryTotal[i].pid);
-        i++;
-    }
-    printf("\n\n");
-    //create a thread for round robbin
-   pthread_create(&threads[0], NULL, round_robin, NULL);
-   pthread_join(threads[0], NULL);
-    free(memoryTotal);
-    
-    return 0;
-}
 
+}
 
 void free_memory(pcb *highPriorityList, pcb *lowPriorityList){
     pcb *aux = NULL;
