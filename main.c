@@ -1,3 +1,18 @@
+/*
+    Projeto realizado por: 
+                            Gabriel Zancheta Scavazini
+                            Jardel Brandão de Souza
+                            Alex Ricardo
+    Execução: 
+                Make
+                ./main <programa_sintetico>  Até 100 de uma vez
+                
+                De toda forma, poderá ser iniciado com o programa executando
+    
+    Descrição do código:
+        O programa é um simulador de um sistema de computação que simula o funcionamento de um
+        Sistema Operacional. 
+*/
 #include <stdlib.h>
 #include <locale.h>
 #include <stdio.h>
@@ -40,12 +55,9 @@ int main (int argc, char *argv[]){
         PROCESS_ARG_COUNT++;
     }
 
-    
     //create a thread for the menu
     pthread_create(&threads[1], NULL, &menu, NULL);
     pthread_create(&threads[0], NULL, round_robin, NULL);
-
-
     //create a thread for round robbin
     pthread_join(threads[1], NULL);
     pthread_join(threads[0], NULL);
